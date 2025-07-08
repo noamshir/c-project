@@ -1,3 +1,5 @@
-shoko moko
-doko loko
-pppp ddds xxx
+mcro aaa
+loko poko
+mcroend
+lolo
+polo

@@ -1,14 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct mcro_item
-{
-    char *name;
-    char *value;
-} mcro_item;
+#include "Headers/table.h"
 
 void pre_assembler();
+
+void fill_mcro_table(char *file_name, mcro_item **mcro_table);
 
 int main(int argc, char const *argv[])
 {
@@ -19,11 +16,18 @@ int main(int argc, char const *argv[])
 
 void pre_assembler()
 {
-    FILE *file = fopen("ps.as", "r");
-    mcro_item *mcroTable;
+    char *file_name = "ps.as";
+    mcro_item *mcro_table;
+    fill_mcro_table(file_name, &mcro_table);
+}
+
+void fill_mcro_table(char *file_name, mcro_item **mcro_table)
+{
+    FILE *file = fopen(file_name, "r");
+    mcro_item *current_mcro;
     char line[80];
+    char *word, *nextWord;
     int isMacro = 0;
-    char *word;
 
     if (file == NULL)
     {
@@ -34,28 +38,33 @@ void pre_assembler()
     while (fgets(line, sizeof(line), file) != NULL)
     {
         word = strtok(line, " ");
+        printf("%s\n", word);
         if (strcmp(word, "mcro") == 0)
         {
             isMacro = 1;
-            // find, validate (good mcro name and only mcro name at line) and add its name to the mcro table
+            nextWord = strtok(NULL, " ");
+            if (nextWord == NULL)
+            {
+                printf("No name for mcro! \n");
+                return;
+            }
+
+            printf("next word: %s\n", nextWord);
+            current_mcro = add_item(mcro_table, nextWord, NULL);
             continue;
         }
         else if (strcmp(word, "mcroend") == 0)
         {
             isMacro = 0;
-            // remove line from file and validate.
+            current_mcro = NULL;
             continue;
         }
-
-        if (isMacro == 1)
+        else if (isMacro == 1)
         {
-            // add line to mcro table (to the current mcro value)
-            // remove line from file
+            printf("%s\n", word);
+            current_mcro->value = strcat(current_mcro->value, word);
+            printf("%s\n", word);
             continue;
-        }
-        else
-        {
-            // add line to file
         }
     }
 }
