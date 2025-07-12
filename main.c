@@ -6,24 +6,33 @@
 #include "Headers/error.h"
 
 void pre_assembler();
-void fill_mcro_table(char *file_name, mcro_item **mcro_table);
+int fill_mcro_table(char *file_name, mcro_item **mcro_table);
 char *remove_mcro_defines(char file_name[]);
 char *replace_mcro_defines(mcro_item **mcro_table, char file_name[]);
+int isMcroNameValid(char *name);
 
-int main(int argc, char const *argv[])
+int main(int argc, char *argv[])
 {
-    pre_assembler();
+    pre_assembler(argv[1]);
     return 0;
 }
 
 void pre_assembler()
 {
+    int valid;
     FILE *fp;
     char *file_name = "ps.as";
     char *temp_file_name, str[80];
     mcro_item *mcro_table;
-    fill_mcro_table(file_name, &mcro_table);
+
+    valid = fill_mcro_table(file_name, &mcro_table);
+
+    if (!valid)
+    {
+        exit(1);
+    }
     temp_file_name = remove_mcro_defines(file_name);
+
     if (temp_file_name == NULL)
     {
         exit(1);
@@ -44,20 +53,19 @@ void pre_assembler()
     }
 }
 
-void fill_mcro_table(char *file_name, mcro_item **mcro_table)
+int fill_mcro_table(char *file_name, mcro_item **mcro_table)
 {
     FILE *file;
     mcro_item *current_mcro = NULL;
     char line[80];
-    char *word, *nextWord;
+    char *word, *next_word, *third_word;
     int isMacro = 0;
 
     file = fopen(file_name, "r");
-
     if (file == NULL)
     {
-        printf("Error opening file\n");
-        return;
+        printf("error code is %d\n", PROCESS_ERROR_FAILED_TO_OPEN_FILE);
+        return 0;
     }
 
     while (fgets(line, sizeof(line), file) != NULL)
@@ -68,20 +76,44 @@ void fill_mcro_table(char *file_name, mcro_item **mcro_table)
 
         if (strcmp(word, "mcro") == 0)
         {
+
             isMacro = 1;
-            nextWord = strtok(NULL, " ");
-            if (nextWord == NULL)
+            next_word = strtok(NULL, " ");
+            if (next_word == NULL)
             {
-                return;
+                fclose(file);
+                return 0;
             }
 
-            delete_white_spaces(nextWord);
-            current_mcro = add_item(mcro_table, strdup(nextWord), NULL);
+            delete_white_spaces(next_word);
+            if (!isMcroNameValid(next_word))
+            {
+                fclose(file);
+                printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_NAME);
+                return 0;
+            }
+
+            third_word = strtok(NULL, " ");
+            if (third_word != NULL)
+            {
+                fclose(file);
+                printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+                return 0;
+            }
+
+            current_mcro = add_item(mcro_table, strdup(next_word), NULL);
 
             continue;
         }
         else if (strcmp(word, "mcroend") == 0)
         {
+            next_word = strtok(NULL, " ");
+            if (next_word != NULL)
+            {
+                fclose(file);
+                printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_END_DECLARATION);
+                return 0;
+            }
             isMacro = 0;
             current_mcro = NULL;
             continue;
@@ -94,7 +126,43 @@ void fill_mcro_table(char *file_name, mcro_item **mcro_table)
     }
 
     fclose(file);
-    return;
+    return 1;
+}
+
+int isMcroNameValid(char *name)
+{
+    int i;
+    char *commands[] = {"mov", "cmp", "add", "sub", "lea", "clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", "rts", "stop"};
+    char *instructions[] = {".data", ".string", ".mat", ".entry", ".extern"};
+
+    if (name == NULL)
+    {
+        return 0;
+    }
+    if (strlen(name) == 0)
+    {
+        return 0;
+    }
+
+    /* check if name is in commands */
+    for (i = 0; i < (sizeof(commands) / sizeof(commands[0])); i++)
+    {
+
+        if (strcmp(name, commands[i]) == 0)
+        {
+            return 0;
+        }
+    }
+
+    /* check if name is in instructions*/
+    for (i = 0; i < (sizeof(instructions) / sizeof(instructions[0])); i++)
+    {
+        if (strcmp(name, instructions[i]) == 0)
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 char *remove_mcro_defines(char file_name[])
@@ -111,7 +179,7 @@ char *remove_mcro_defines(char file_name[])
         return NULL;
     }
 
-    temp_file = "remove_mcro_temp.as";
+    temp_file = strcat(get_file_name_without_extension(file_name), ".am");
     temp_file_pointer = fopen(temp_file, "w");
     if (temp_file_pointer == NULL)
     {

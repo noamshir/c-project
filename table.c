@@ -27,14 +27,24 @@ mcro_item *add_item(mcro_item **head, char *name, char *value)
     }
     else
     {
+        temp = malloc(sizeof(mcro_item));
+
+        if (temp == NULL)
+        {
+            exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+        }
         temp = *head;
         while (temp->next != NULL)
         {
             temp = temp->next;
         }
+        temp->next = malloc(sizeof(mcro_item));
+        if (temp->next == NULL)
+        {
+            exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+        }
         temp->next = item;
     }
-
     return item;
 }
 
