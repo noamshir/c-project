@@ -35,7 +35,8 @@ void convertToSpecialBase4(int value, char* output) /*converting the input to a 
     int i;
     char base4Chars[] = {'a', 'b', 'c', 'd'};
 
-    for (i = 4; i >= 0; i--) {
+    for (i = 4; i >= 0; i--) 
+    {
         output[4 - i] = base4Chars[(value >> (i * 2)) & 0x3];
     }
 
