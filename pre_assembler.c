@@ -6,13 +6,20 @@
 #include "Headers/string.h"
 #include "Headers/error.h"
 
-void pre_assembler()
+void pre_assembler(char *file_name_without_postfix)
 {
     int valid;
     FILE *fp;
-    char *file_name = "ps.as";
-    char *temp_file_name, str[80];
-    mcro_item *mcro_table;
+    char *temp_file_name, *file_name, str[80];
+    mcro_item *mcro_table = NULL;
+
+    file_name = malloc(strlen(file_name_without_postfix) + 4);
+    if (file_name == NULL)
+    {
+        exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+    strcpy(file_name, file_name_without_postfix);
+    strcat(file_name, ".as");
 
     valid = fill_mcro_table(file_name, &mcro_table);
 
