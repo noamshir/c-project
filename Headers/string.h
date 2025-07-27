@@ -1,2 +1,9 @@
 void delete_white_spaces(char *s);
 char *get_file_name_without_extension(char *file_name);
+int is_empty_line(char *line);
+int is_comment_line(char *line);
+int is_label(char *word);
+int is_data_guide(char *word);
+int is_extern_guide(char *word);
+int is_entry_guide(char *word);
+int is_instruction(char *word);

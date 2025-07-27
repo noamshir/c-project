@@ -2,6 +2,5 @@ mcro aaa
 loko poko
 ppp cccc ddd
 mcroend
-lolo
-polo
-aaa
+label: .data 5,4,3,2,1
+koko: .string "popo"
