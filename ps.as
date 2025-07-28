@@ -5,3 +5,4 @@ mcroend
 label: .data 5,4,3,2,1
 koko: .string "popo"
 choco: .mat [1][3] 1,2,3
+.extern koko

@@ -38,7 +38,7 @@ void first_pass(char *file_name_without_postfix)
     while (fgets(line, sizeof(line), file) != NULL)
     {
         line_num++;
-        printf("line: %s", line);
+        printf("line: %s \n", line);
         if (is_empty_line(line) || is_comment_line(line))
         {
             continue;
@@ -52,64 +52,34 @@ void first_pass(char *file_name_without_postfix)
             is_curr_label = 1;
         }
 
-        printf("word: %s\n", word);
-        printf("is_curr_label: %d\n", is_curr_label);
-
         next_word = strtok(NULL, " ");
         if (next_word != NULL)
         {
             delete_white_spaces(next_word);
         }
 
-        if (is_curr_label)
+        if (is_data_guide(next_word))
         {
-            printf("next word: %s\n", next_word);
-
-            if (is_data_guide(next_word))
-            {
-                printf("data guide\n");
-                add_data_guide_to_symbol_table(&symbol_table, line, array_of_data, &DC);
-            }
-            // else if (is_extern_guide(next_word))
-            // {
-            //     add_extern_guide_to_symbol_table(symbol_table, line, &DC);
-            // }
-            // else if (is_entry_guide(next_word))
-            // {
-            //     /* will deal at second pass */
-            //     continue;
-            // }
-            // else if (is_operation(next_word))
-            // {
-            //     add_operation_to_symbol_table(symbol_table, line, &IC);
-            // }
+            handle_guide(&symbol_table, line, array_of_data, &DC);
         }
-        // else
+        else if (is_extern_guide(next_word))
+        {
+            handle_extern(&symbol_table, line);
+        }
+        else if (is_entry_guide(next_word))
+        {
+            /* will deal at second pass */
+            continue;
+        }
+        // else if (is_operation(next_word))
         // {
-        //     if (is_data_guide(next_word))
-        //     {
-        //         encrypt_data(symbol_table, line, &DC);
-        //     }
-        //     else if (is_extern_guide(next_word))
-        //     {
-        //         // something
-        //     }
-        //     else if (is_entry_guide(next_word))
-        //     {
-        //         /* will deal at second pass */
-        //         continue;
-        //     }
-        //     else if (is_operation(next_word))
-        //     {
-        //         handle_operation_line(line, &IC);
-        //     }
+        //     add_operation_to_symbol_table(symbol_table, line, &IC);
         // }
     }
 }
 
-void add_data_guide_to_symbol_table(symbol_item **symbol_table, char *line, int *array_of_data, int *DC)
+void handle_guide(symbol_item **symbol_table, char *line, int *array_of_data, int *DC)
 {
-    // get first word from line
     char *guide, *label;
     label = strtok(strdup(line), " ");
     delete_white_spaces(label);
@@ -335,4 +305,39 @@ void handle_mat_guide(symbol_item **symbol_table, int *array_of_data, char *line
         printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
         return;
     }
+}
+
+void handle_extern(symbol_item **symbol_table, char *line)
+{
+    // check that line is of type: "label: .extern operand"
+    char *word, *next_word;
+    int num;
+    int i = 0;
+    word = strtok(strdup(line), " ");
+    delete_white_spaces(word);
+    if (is_label(word))
+    {
+        word = strtok(NULL, " ");
+        delete_white_spaces(word);
+        if (strcmp(word, ".extern") != 0)
+        {
+            printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+            return;
+        }
+    }
+    else if (strcmp(word, ".extern") != 0)
+    {
+        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return;
+    }
+
+    next_word = strtok(NULL, " ");
+    if (next_word == NULL)
+    {
+        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return;
+    }
+    delete_white_spaces(next_word);
+    printf("next word: %s\n", next_word);
+    add_label_to_symbol_table(symbol_table, next_word, "external", 0);
 }
