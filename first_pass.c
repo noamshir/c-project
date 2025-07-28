@@ -124,12 +124,13 @@ void add_data_guide_to_symbol_table(symbol_item **symbol_table, char *line, int 
     }
     else if (strcmp(guide, ".string") == 0)
     {
+        add_label_to_symbol_table(symbol_table, label, "data", *DC);
         handle_string_guide(symbol_table, line, array_of_data, DC);
     }
-    // else if (strcmp(guide, ".mat") == 0)
-    // {
-    //     handle_mat_guide(symbol_table, line, DC);
-    // }
+    else if (strcmp(guide, ".mat") == 0)
+    {
+        handle_mat_guide(symbol_table, array_of_data, line, DC);
+    }
 }
 
 void handle_data_guide(symbol_item **symbol_table, char *line, int *array_of_data, int *DC)
@@ -183,7 +184,7 @@ void handle_data_guide(symbol_item **symbol_table, char *line, int *array_of_dat
             printf("error code is %d\n", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
             return;
         }
-        array_of_data[i] = num;
+        array_of_data[*DC] = num;
         i++;
         (*DC)++;
     }
@@ -238,7 +239,100 @@ void handle_string_guide(symbol_item **symbol_table, char *line, int *array_of_d
             return;
         }
         printf("asci val: %d \n", (int)c);
-        array_of_data[i] = (int)c;
+        array_of_data[*DC] = (int)c;
         (*DC)++;
+    }
+
+    // add end of string char
+    array_of_data[*DC] = (int)'\0';
+    (*DC)++;
+}
+
+void handle_mat_guide(symbol_item **symbol_table, int *array_of_data, char *line, int *DC)
+{
+    // check that line is of type: "label: .mat [num1][num2] optional numbers seperated by comma
+    char *word, *next_word;
+    int num, rows, cols;
+    int i = 0;
+    word = strtok(strdup(line), " ");
+    delete_white_spaces(word);
+    if (is_label(word))
+    {
+        word = strtok(NULL, " ");
+        delete_white_spaces(word);
+        if (strcmp(word, ".mat") != 0)
+        {
+            printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+            return;
+        }
+    }
+    else if (strcmp(word, ".mat") != 0)
+    {
+        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return;
+    }
+
+    next_word = strtok(NULL, " ");
+    if (next_word == NULL)
+    {
+        printf("error code is %d\n, ", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return;
+    }
+
+    // check that next word is [num1][num2]
+    if (next_word[0] != '[' || next_word[strlen(next_word) - 1] != ']')
+    {
+        printf("error code is %d\n, ", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return;
+    }
+
+    printf("mat guide\n");
+    printf("next word: %c\n", next_word[1]);
+
+    rows = next_word[1] - '0';
+    cols = next_word[4] - '0';
+    if (rows == 0 || cols == 0)
+    {
+        printf("error code is %d\n, ", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return;
+    }
+    printf("rows: %d, cols: %d\n", rows, cols);
+
+    for (i = 0; i < (rows * cols); i++)
+    {
+        next_word = strtok(NULL, ",");
+        printf("next word: %s\n", next_word);
+        if (next_word == NULL)
+        {
+            num = 0;
+        }
+        else
+        {
+            delete_white_spaces(next_word);
+            if (!is_integer(next_word))
+            {
+                printf("error code is %d\n, ", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+                return;
+            }
+            num = atoi(next_word);
+        }
+        // allocate memo to array of data
+        array_of_data = realloc(array_of_data, (*DC + 1) * sizeof(int));
+        if (array_of_data == NULL)
+        {
+            printf("error code is %d\n, ", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            return;
+        }
+        printf("num: %d\n", num);
+        array_of_data[*DC] = num;
+        (*DC)++;
+    }
+
+    next_word = strtok(NULL, ",");
+    printf("next word: %s\n", next_word);
+    if (next_word != NULL)
+    {
+        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return;
     }
 }
