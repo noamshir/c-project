@@ -106,69 +106,42 @@ int is_label(char *word)
     return 0;
 }
 
-int is_data_guide(char *word)
+int is_word_guide(char *word, int guide_type)
 {
     if (word == NULL)
     {
         return 0;
     }
-    if (strcmp(word, guides[GUIDE_DATA]) == 0)
+    if (strcmp(word, guides[guide_type]) == 0)
     {
         return 1;
     }
     return 0;
+}
+
+int is_data_guide(char *word)
+{
+    return is_word_guide(word, GUIDE_DATA);
 }
 
 int is_string_guide(char *word)
 {
-    if (word == NULL)
-    {
-        return 0;
-    }
-    if (strcmp(word, guides[GUIDE_STRING]) == 0)
-    {
-        return 1;
-    }
-    return 0;
+    return is_word_guide(word, GUIDE_STRING);
 }
 
 int is_mat_guide(char *word)
 {
-    if (word == NULL)
-    {
-        return 0;
-    }
-    if (strcmp(word, guides[GUIDE_MAT]) == 0)
-    {
-        return 1;
-    }
-    return 0;
+    return is_word_guide(word, GUIDE_MAT);
 }
 
 int is_extern_guide(char *word)
 {
-    if (word == NULL)
-    {
-        return 0;
-    }
-    if (strcmp(word, guides[GUIDE_EXTERN]) == 0)
-    {
-        return 1;
-    }
-    return 0;
+    return is_word_guide(word, GUIDE_EXTERN);
 }
 
 int is_entry_guide(char *word)
 {
-    if (word == NULL)
-    {
-        return 0;
-    }
-    if (strcmp(word, guides[GUIDE_ENTRY]) == 0)
-    {
-        return 1;
-    }
-    return 0;
+    return is_word_guide(word, GUIDE_ENTRY);
 }
 
 int is_operation(char *word)

@@ -6,6 +6,7 @@ char *get_file_name_without_extension(char *file_name);
 int is_empty_line(char *line);
 int is_comment_line(char *line);
 int is_label(char *word);
+int is_word_guide(char *word, int guide_type);
 int is_data_guide(char *word);
 int is_string_guide(char *word);
 int is_mat_guide(char *word);
