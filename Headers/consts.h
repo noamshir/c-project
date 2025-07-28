@@ -1,17 +1,33 @@
-char *operations[16] = {
-    "mov",
-    "cmp",
-    "add",
-    "sub",
-    "lea",
-    "clr",
-    "not",
-    "inc",
-    "dec",
-    "jmp",
-    "bne",
-    "jsr",
-    "red",
-    "prn",
-    "rts",
-    "stop"};
+#ifndef CONSTS_H
+#define CONSTS_H
+
+typedef enum OPERATIONS_IDX
+{
+    OPERATION_MOV = 0,
+    OPERATION_CMP,
+    OPERATION_ADD,
+    OPERATION_SUB,
+    OPERATION_LEA,
+    OPERATION_CLR,
+    OPERATION_NOT,
+    OPERATION_INC,
+    OPERATION_DEC,
+    OPERATION_JMP,
+    OPERATION_BNE,
+    OPERATION_JSR,
+    OPERATION_RED,
+    OPERATION_PRN,
+    OPERATION_RTS,
+    OPERATION_STOP,
+} OPERATIONS_IDX;
+
+typedef enum GUIDES_IDX
+{
+    GUIDE_DATA = 0,
+    GUIDE_STRING,
+    GUIDE_MAT,
+    GUIDE_ENTRY,
+    GUIDE_EXTERN,
+} GUIDES_IDX;
+
+#endif

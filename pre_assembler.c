@@ -45,7 +45,7 @@ void pre_assembler(char *file_name_without_postfix)
 
     while (fgets(str, 80, fp) != NULL)
     {
-        printf("line: %s", str);
+        printf("line: %s \n", str);
     }
 }
 

@@ -8,6 +8,7 @@
 #include "Headers/symbol_table.h"
 #include "Headers/first_pass.h"
 #include "Headers/utils.h"
+#include "Headers/consts.h"
 
 void first_pass(char *file_name_without_postfix)
 {
@@ -16,7 +17,6 @@ void first_pass(char *file_name_without_postfix)
     FILE *file;
     symbol_item *symbol_table = NULL;
     int *array_of_data = NULL;
-    int *array_of_operations = NULL;
 
     printf("first pass started\n");
 
@@ -58,7 +58,7 @@ void first_pass(char *file_name_without_postfix)
             delete_white_spaces(next_word);
         }
 
-        if (is_data_guide(next_word))
+        if (is_data_guide(next_word) || is_string_guide(next_word) || is_mat_guide(next_word))
         {
             handle_guide(&symbol_table, line, array_of_data, &DC);
         }
@@ -85,19 +85,18 @@ void handle_guide(symbol_item **symbol_table, char *line, int *array_of_data, in
     delete_white_spaces(label);
     guide = strtok(NULL, " ");
     delete_white_spaces(guide);
-    printf("guide: %s\n", guide);
 
-    if (strcmp(guide, ".data") == 0)
+    if (is_data_guide(guide))
     {
         add_label_to_symbol_table(symbol_table, label, "data", *DC);
         handle_data_guide(symbol_table, line, array_of_data, DC);
     }
-    else if (strcmp(guide, ".string") == 0)
+    else if (is_string_guide(guide))
     {
         add_label_to_symbol_table(symbol_table, label, "data", *DC);
         handle_string_guide(symbol_table, line, array_of_data, DC);
     }
-    else if (strcmp(guide, ".mat") == 0)
+    else if (is_mat_guide(guide))
     {
         handle_mat_guide(symbol_table, array_of_data, line, DC);
     }
@@ -115,13 +114,13 @@ void handle_data_guide(symbol_item **symbol_table, char *line, int *array_of_dat
     {
         word = strtok(NULL, " ");
         delete_white_spaces(word);
-        if (strcmp(word, ".data") != 0)
+        if (!is_data_guide(word))
         {
             printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
             return;
         }
     }
-    else if (strcmp(word, ".data") != 0)
+    else if (!is_data_guide(word))
     {
         printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
         return;
@@ -171,13 +170,13 @@ void handle_string_guide(symbol_item **symbol_table, char *line, int *array_of_d
     {
         word = strtok(NULL, " ");
         delete_white_spaces(word);
-        if (strcmp(word, ".string") != 0)
+        if (!is_string_guide(word))
         {
             printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
             return;
         }
     }
-    else if (strcmp(word, ".string") != 0)
+    else if (!is_string_guide(word))
     {
         printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
         return;
@@ -230,13 +229,13 @@ void handle_mat_guide(symbol_item **symbol_table, int *array_of_data, char *line
     {
         word = strtok(NULL, " ");
         delete_white_spaces(word);
-        if (strcmp(word, ".mat") != 0)
+        if (!is_mat_guide(word))
         {
             printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
             return;
         }
     }
-    else if (strcmp(word, ".mat") != 0)
+    else if (!is_mat_guide(word))
     {
         printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
         return;
@@ -255,9 +254,6 @@ void handle_mat_guide(symbol_item **symbol_table, int *array_of_data, char *line
         printf("error code is %d\n, ", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
         return;
     }
-
-    printf("mat guide\n");
-    printf("next word: %c\n", next_word[1]);
 
     rows = next_word[1] - '0';
     cols = next_word[4] - '0';
@@ -319,13 +315,13 @@ void handle_extern(symbol_item **symbol_table, char *line)
     {
         word = strtok(NULL, " ");
         delete_white_spaces(word);
-        if (strcmp(word, ".extern") != 0)
+        if (!is_extern_guide(word))
         {
             printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
             return;
         }
     }
-    else if (strcmp(word, ".extern") != 0)
+    else if (!is_extern_guide(word))
     {
         printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
         return;

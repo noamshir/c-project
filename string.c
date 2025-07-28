@@ -4,6 +4,31 @@
 #include "Headers/error.h"
 #include "Headers/consts.h"
 
+char *operations[16] = {
+    "mov",
+    "cmp",
+    "add",
+    "sub",
+    "lea",
+    "clr",
+    "not",
+    "inc",
+    "dec",
+    "jmp",
+    "bne",
+    "jsr",
+    "red",
+    "prn",
+    "rts",
+    "stop"};
+
+char *guides[5] = {
+    ".data",
+    ".string",
+    ".mat",
+    ".entry",
+    ".extern"};
+
 void delete_white_spaces(char *str)
 {
     char *temp = str;
@@ -87,7 +112,33 @@ int is_data_guide(char *word)
     {
         return 0;
     }
-    if (strcmp(word, ".data") == 0 || strcmp(word, ".string") == 0 || strcmp(word, ".mat") == 0)
+    if (strcmp(word, guides[GUIDE_DATA]) == 0)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+int is_string_guide(char *word)
+{
+    if (word == NULL)
+    {
+        return 0;
+    }
+    if (strcmp(word, guides[GUIDE_STRING]) == 0)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+int is_mat_guide(char *word)
+{
+    if (word == NULL)
+    {
+        return 0;
+    }
+    if (strcmp(word, guides[GUIDE_MAT]) == 0)
     {
         return 1;
     }
@@ -100,7 +151,7 @@ int is_extern_guide(char *word)
     {
         return 0;
     }
-    if (strcmp(word, ".extern") == 0)
+    if (strcmp(word, guides[GUIDE_EXTERN]) == 0)
     {
         return 1;
     }
@@ -113,7 +164,7 @@ int is_entry_guide(char *word)
     {
         return 0;
     }
-    if (strcmp(word, ".entry") == 0)
+    if (strcmp(word, guides[GUIDE_ENTRY]) == 0)
     {
         return 1;
     }
