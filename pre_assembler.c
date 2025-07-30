@@ -5,12 +5,13 @@
 #include "Headers/table.h"
 #include "Headers/string.h"
 #include "Headers/error.h"
+#include "Headers/consts.h"
 
 void pre_assembler(char *file_name_without_postfix)
 {
     int valid;
     FILE *fp;
-    char *temp_file_name, *file_name, str[80];
+    char *temp_file_name, *file_name, str[LINE_SIZE];
     mcro_item *mcro_table = NULL;
 
     file_name = malloc(strlen(file_name_without_postfix) + 4);
@@ -43,7 +44,7 @@ void pre_assembler(char *file_name_without_postfix)
         exit(1);
     }
 
-    while (fgets(str, 80, fp) != NULL)
+    while (fgets(str, LINE_SIZE, fp) != NULL)
     {
         printf("line: %s \n", str);
     }
@@ -53,7 +54,7 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
 {
     FILE *file;
     mcro_item *current_mcro = NULL;
-    char line[80];
+    char line[LINE_SIZE];
     char *word, *next_word, *third_word;
     int isMacro = 0;
 
@@ -165,7 +166,7 @@ char *remove_mcro_defines(char file_name[])
 {
     int found_mcro = 0;
     char *token, *temp_file;
-    char line[80], line_copy[80];
+    char line[LINE_SIZE], line_copy[LINE_SIZE];
     FILE *original_file_pointer, *temp_file_pointer;
 
     original_file_pointer = fopen(file_name, "r");
@@ -184,7 +185,7 @@ char *remove_mcro_defines(char file_name[])
         return NULL;
     }
 
-    while (fgets(line, 80, original_file_pointer))
+    while (fgets(line, LINE_SIZE, original_file_pointer))
     {
         strcpy(line_copy, line);
         token = strtok(line, " \n");
@@ -228,7 +229,7 @@ char *replace_mcro_defines(mcro_item **mcro_table, char file_name[])
 {
     char *token, *content;
     mcro_item *table_item;
-    char line[80], line_copy[80];
+    char line[LINE_SIZE], line_copy[LINE_SIZE];
     FILE *original_file_pointer, *temp_file_pointer;
 
     original_file_pointer = fopen(file_name, "r");
@@ -245,7 +246,7 @@ char *replace_mcro_defines(mcro_item **mcro_table, char file_name[])
         return NULL;
     }
 
-    while (fgets(line, 80, original_file_pointer))
+    while (fgets(line, LINE_SIZE, original_file_pointer))
     {
         strcpy(line_copy, line);
         token = strtok(line, " \n");

@@ -14,7 +14,7 @@
 void first_pass(char *file_name_without_postfix)
 {
     int IC = 0, DC = 0, line_num = 0;
-    char *temp_file_name, *file_name, line[80], *word, *main_op, *array_of_operations = NULL;
+    char *temp_file_name, *file_name, line[LINE_SIZE], *word, *main_op, *array_of_operations = NULL;
     FILE *file;
     symbol_item *symbol_table = NULL;
     int *array_of_data = NULL;
@@ -473,10 +473,10 @@ void handle_op(int op_index, char *str, char *src, char *dst, char *array_of_ope
     L = calculate_space(src_type, dst_type, &src_space, &dst_space);
     printf("Space size for line: %d\n", L);
 
-    line_binary_code = malloc(11);
+    line_binary_code = malloc(BINARY_CODE_SIZE);
     add_operation_line_binary_code(line_binary_code, str, op_index, src_type, dst_type, array_of_operations, IC);
     printf("line binary code: %s\n", line_binary_code);
-    array_of_operations = realloc(array_of_operations, (*IC + L) * 11);
+    array_of_operations = realloc(array_of_operations, (*IC + L) * BINARY_CODE_SIZE);
     array_of_operations[*IC] = strdup(line_binary_code);
     free(line_binary_code);
     (*IC)++;

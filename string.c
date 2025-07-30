@@ -106,7 +106,7 @@ int is_valid_label_name(char *str)
         return 0;
     }
 
-    if (strlen(str) == 0 || strlen(str) > 31)
+    if (strlen(str) == 0 || strlen(str) > LABEL_SIZE)
     {
         return 0;
     }
@@ -144,7 +144,7 @@ int is_label(char *word)
     {
         return 0;
     }
-    if (strlen(word) == 0 || strlen(word) == 1 || strlen(word) > 31)
+    if (strlen(word) == 0 || strlen(word) == 1 || strlen(word) > LABEL_SIZE)
     {
         return 0;
     }

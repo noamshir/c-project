@@ -58,6 +58,8 @@ char *get_line_op_binary_code(int op_index)
     case 15:
         return "1111";
     }
+
+    return NULL;
 }
 
 char *get_line_ARE_binary_code(char *str)
@@ -79,13 +81,15 @@ char *get_allocation_type_binary_code(int allocation_type)
     case 3:
         return "11";
     }
+
+    return NULL;
 }
 
 char *get_direct_allocation_binary_code(char *str)
 {
     int num;
     char *temp = strdup(str);
-    char *binary_code = malloc(11);
+    char *binary_code = malloc(BINARY_CODE_SIZE);
     num = get_num_from_direct_allocation(temp);
     binary_code = convert_num_to_binary_code(num);
     return binary_code;
@@ -101,9 +105,10 @@ int get_num_from_direct_allocation(char *str)
 
 char *convert_num_to_binary_code(int num)
 {
-    char *binary_code = malloc(11);
+    int i;
+    char *binary_code = malloc(BINARY_CODE_SIZE);
     // convert num to binary (8 bits) and add 00 at the end
-    for (int i = 7; i >= 0; i--)
+    for (i = 7; i >= 0; i--)
     {
         binary_code[7 - i] = (num & (1 << i)) ? '1' : '0';
     }
