@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <ctype.h>
 #include <string.h>
+#include "Headers/string.h"
 
 int is_integer(char *str)
 {
@@ -23,7 +23,7 @@ int is_integer(char *str)
 
     for (; str[i] != '\0'; i++)
     {
-        if (!isdigit(str[i]))
+        if (!is_char_digit(str[i]))
         {
             // one char is not a digit, string isnt a number
             return 0;

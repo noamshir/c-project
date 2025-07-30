@@ -22,6 +22,11 @@ void add_label_to_symbol_table(symbol_item **head, char *name, char *type, int a
 {
     symbol_item *item, *temp;
     item = create_symbol_item(name, type, address);
+    if (find_symbol_item_by_name(*head, name) != NULL)
+    {
+        printf("error code is %d\n", PROCESS_ERROR_SYMBOL_ALREADY_EXISTS);
+        return;
+    }
     if (*head == NULL)
     {
         *head = item;
@@ -46,4 +51,20 @@ void add_label_to_symbol_table(symbol_item **head, char *name, char *type, int a
         }
         temp->next = item;
     }
+}
+
+symbol_item *find_symbol_item_by_name(symbol_item *head, char *name)
+{
+    if (head == NULL)
+    {
+        return NULL;
+    }
+
+    if (strcmp(name, head->name) == 0)
+    {
+
+        return head;
+    }
+
+    return find_symbol_item_by_name(head->next, name);
 }
