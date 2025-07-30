@@ -396,10 +396,8 @@ void handle_operation_line(symbol_item **symbol_table, char *line, char *array_o
     case OPERATION_STOP:
         handle_no_op_line(op_index, rest_of_line, array_of_operations, IC);
         break;
-
-    default:
-        break;
     }
+    update_data_labels(*symbol_table, *IC);
 }
 
 void handle_no_op_line(int op_index, char *str, char *array_of_operations, int *IC)

@@ -3,9 +3,9 @@ loko poko
 ppp cccc ddd
 mcroend
 label: .data 5,4,3,2,1
-koko: .string "popo"
+shoso: .string "popo"
 choco: .mat [1][3] 1,2,3
 .extern koko
 mov #+3,aaa[r1][r3]
-clr koko,
+popo: clr koko,
 stop
