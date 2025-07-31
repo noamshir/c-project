@@ -387,9 +387,9 @@ int is_immediate_allocation(char *word)
 
 int is_mat_allocation(char *word)
 {
-    // check that next word is [num1][num2]
+    // check that next word is [reg1][reg2]
     int i = 0;
-    char *label, *mat_def, *temp, reg[3];
+    char *label, *mat_def, *temp, *reg1, *reg2;
     if (word == NULL)
     {
         return 0;
@@ -398,6 +398,9 @@ int is_mat_allocation(char *word)
     {
         return 0;
     }
+
+    reg1 = malloc(3);
+    reg2 = malloc(3);
 
     temp = strchr(word, '[');
     // no [ sign? cant be a mat def...
@@ -430,26 +433,34 @@ int is_mat_allocation(char *word)
     free(label);
     mat_def = strdup(temp);
 
+    return get_regs_from_mat_allocation(mat_def, reg1, reg2);
+}
+
+int get_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)
+{
+    int i = 0;
+    char *temp;
+
     if (mat_def[0] != '[' || mat_def[strlen(mat_def) - 1] != ']')
     {
         return 0;
     }
 
     temp = strdup(mat_def);
-    // loop the first [num] and check if valid
+    // loop the first [reg] and check if valid
     for (temp = mat_def + 1; *temp != ']'; temp++)
     {
         if (i > 1)
         {
             return 0;
         }
-        reg[i] = *temp;
+        reg1[i] = *temp;
         i++;
     }
-    reg[i] = '\0';
-    if (!is_register(reg))
+    reg1[i] = '\0';
+    if (!is_register(reg1))
     {
-        printf("error code is %d\n", 90);
+        printf("error code is %d\n", PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM);
         return 0;
     }
 
@@ -460,7 +471,7 @@ int is_mat_allocation(char *word)
     }
     temp++;
 
-    // loop the second [num] and check if valid
+    // loop the second [reg] and check if valid
     i = 0;
     for (; *temp != ']'; temp++)
     {
@@ -468,15 +479,18 @@ int is_mat_allocation(char *word)
         {
             return 0;
         }
-        reg[i] = *temp;
+        reg2[i] = *temp;
         i++;
     }
-    reg[i] = '\0';
-    if (!is_register(reg))
+    reg2[i] = '\0';
+    if (!is_register(reg2))
     {
+        printf("error code is %d\n", PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM);
+
         return 0;
     }
 
+    printf("reg1: %s, reg2: %s\n", reg1, reg2);
     return 1;
 }
 

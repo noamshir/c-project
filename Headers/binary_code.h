@@ -7,4 +7,8 @@ char *get_allocation_type_binary_code(int allocation_type);
 char *get_direct_allocation_binary_code(char *str);
 int get_num_from_direct_allocation(char *str);
 char *convert_num_to_binary_code(int num);
+char *get_register_allocation_binary_code_base_4(char *str);
+char *get_register_allocation_binary_code(char *str);
+char *get_register_allocations_binary_code(char *src, char *dst);
+void set_first_pass_mat_allocation_binary_code(char *str, char *array_of_operations, int IC);
 #endif

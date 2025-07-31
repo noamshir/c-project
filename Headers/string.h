@@ -22,6 +22,7 @@ int set_rows_and_cols_from_mat_declaration(char *word, int *rows, int *cols);
 int get_allocation_type(char *word);
 int is_immediate_allocation(char *word);
 int is_mat_allocation(char *word);
+int get_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2);
 int is_register_allocation(char *word);
 int is_direct_allocation(char *word);
 

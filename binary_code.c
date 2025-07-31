@@ -118,3 +118,84 @@ char *convert_num_to_binary_code(int num)
     printf("num: %d, binary code: %s\n", num, binary_code);
     return binary_code;
 }
+
+char *get_register_allocation_binary_code_base_4(char *str)
+{
+    int num;
+    char *temp = strdup(str);
+    temp = strtok(temp, "r");
+    delete_white_spaces(temp);
+    num = atoi(temp);
+    switch (num)
+    {
+    case 0:
+        return "0000";
+    case 1:
+        return "0001";
+    case 2:
+        return "0010";
+    case 3:
+        return "0011";
+    case 4:
+        return "0100";
+    case 5:
+        return "0101";
+    case 6:
+        return "0110";
+    case 7:
+        return "0111";
+    }
+
+    return NULL;
+}
+
+char *get_register_allocation_binary_code(char *str)
+{
+    char *temp = strdup(str);
+    char *binary_code = malloc(BINARY_CODE_SIZE);
+    strcpy(binary_code, get_register_allocation_binary_code_base_4(temp));
+    strcat(binary_code, "r0");
+    strcat(binary_code, "00");
+    printf("register %s binary code: %s\n", str, binary_code);
+    return binary_code;
+}
+
+char *get_register_allocations_binary_code(char *src, char *dst)
+{
+    char *src_binary_code = get_register_allocation_binary_code_base_4(src);
+    char *dst_binary_code = get_register_allocation_binary_code_base_4(dst);
+    char *binary_code = malloc(BINARY_CODE_SIZE);
+    strcpy(binary_code, src_binary_code);
+    strcat(binary_code, dst_binary_code);
+    strcat(binary_code, "00");
+    printf("register %s and %s binary code: %s\n", src, dst, binary_code);
+    return binary_code;
+}
+
+void set_first_pass_mat_allocation_binary_code(char *str, char *array_of_operations, int IC)
+{
+    // we dont care about the label encode in first pass
+    int valid;
+    char *temp, *reg1, *reg2;
+
+    reg1 = malloc(3);
+    reg2 = malloc(3);
+
+    temp = strdup(str);
+    while (*temp != '[')
+    {
+        temp++;
+    }
+    array_of_operations[IC] = NULL;
+    IC++;
+
+    // get registers from mat encode
+    valid = get_regs_from_mat_allocation(temp, reg1, reg2);
+    if (!valid)
+    {
+        return;
+    }
+
+    array_of_operations[IC] = get_register_allocations_binary_code(reg1, reg2);
+    IC++;
+}

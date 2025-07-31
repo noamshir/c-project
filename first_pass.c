@@ -76,6 +76,8 @@ void first_pass(char *file_name_without_postfix)
             handle_operation_line(&symbol_table, line, array_of_operations, &IC);
         }
     }
+
+    update_data_labels(symbol_table, IC);
 }
 
 void handle_guide_line(symbol_item **symbol_table, char *line, int *array_of_data, int *DC)
@@ -397,7 +399,6 @@ void handle_operation_line(symbol_item **symbol_table, char *line, char *array_o
         handle_no_op_line(op_index, rest_of_line, array_of_operations, IC);
         break;
     }
-    update_data_labels(*symbol_table, *IC);
 }
 
 void handle_no_op_line(int op_index, char *str, char *array_of_operations, int *IC)
@@ -474,6 +475,7 @@ void handle_op(int op_index, char *str, char *src, char *dst, char *array_of_ope
     line_binary_code = malloc(BINARY_CODE_SIZE);
     add_operation_line_binary_code(line_binary_code, str, op_index, src_type, dst_type, array_of_operations, IC);
     printf("line binary code: %s\n", line_binary_code);
+
     array_of_operations = realloc(array_of_operations, (*IC + L) * BINARY_CODE_SIZE);
     array_of_operations[*IC] = strdup(line_binary_code);
     free(line_binary_code);
@@ -481,33 +483,48 @@ void handle_op(int op_index, char *str, char *src, char *dst, char *array_of_ope
 
     if (src_type == ALLOCATION_REGISTER && dst_type == ALLOCATION_REGISTER)
     {
+        array_of_operations[*IC] = get_register_allocations_binary_code(src, dst);
+        (*IC)++;
+        return;
+    }
+
+    if (src_type == ALLOCATION_REGISTER)
+    {
+        array_of_operations[*IC] = get_register_allocation_binary_code(src);
+    }
+    else if (src_type == ALLOCATION_MAT)
+    {
+        set_first_pass_mat_allocation_binary_code(src, array_of_operations, *IC);
+    }
+    else if (src_type == ALLOCATION_DIRECT)
+    {
         array_of_operations[*IC] = NULL;
-        (*IC)++;
-        return;
+    }
+    else if (src_type == ALLOCATION_IMMEDIATE)
+    {
+        array_of_operations[*IC] = get_direct_allocation_binary_code(src);
     }
 
-    if (src_type != ALLOCATION_IMMEDIATE && dst_type != ALLOCATION_IMMEDIATE)
+    (*IC) = *IC + src_space;
+
+    if (dst_type == ALLOCATION_REGISTER)
     {
-        (*IC) = *IC + src_space + dst_space;
-        return;
+        array_of_operations[*IC] = get_register_allocation_binary_code(dst);
+    }
+    else if (dst_type == ALLOCATION_MAT)
+    {
+        set_first_pass_mat_allocation_binary_code(dst, array_of_operations, *IC);
+    }
+    else if (dst_type == ALLOCATION_DIRECT)
+    {
+        array_of_operations[*IC] = NULL;
+    }
+    else if (dst_type == ALLOCATION_IMMEDIATE)
+    {
+        array_of_operations[*IC] = get_direct_allocation_binary_code(dst);
     }
 
-    if (src_type == ALLOCATION_IMMEDIATE)
-    {
-        src_binary_code = get_direct_allocation_binary_code(src);
-        array_of_operations[*IC] = src_binary_code;
-        (*IC)++;
-        (*IC) = *IC + dst_space;
-        return;
-    }
-    else
-    {
-        (*IC) = *IC + src_space;
-        dst_binary_code = get_direct_allocation_binary_code(dst);
-        array_of_operations[*IC] = dst_binary_code;
-        (*IC)++;
-        return;
-    }
+    (*IC) = *IC + dst_space;
 }
 
 int calculate_space(int src_type, int dst_type, int *src_space, int *dst_space)
