@@ -91,7 +91,7 @@ char *get_direct_allocation_binary_code(char *str)
     char *temp = strdup(str);
     char *binary_code = malloc(BINARY_CODE_SIZE);
     num = get_num_from_direct_allocation(temp);
-    binary_code = convert_num_to_binary_code(num);
+    binary_code = convert_num_to_8_bits(num);
     return binary_code;
 }
 
@@ -103,7 +103,7 @@ int get_num_from_direct_allocation(char *str)
     return atoi(temp);
 }
 
-char *convert_num_to_binary_code(int num)
+char *convert_num_to_8_bits(int num)
 {
     int i;
     char *binary_code = malloc(BINARY_CODE_SIZE);
@@ -117,6 +117,19 @@ char *convert_num_to_binary_code(int num)
     binary_code[10] = '\0';
     printf("num: %d, binary code: %s\n", num, binary_code);
     return binary_code;
+}
+
+char *convert_num_to_10_bits(int num)
+{
+    int i;
+    char *binary_code = malloc(BINARY_CODE_SIZE);
+    // convert num to binary (10 bits)
+    for (i = 9; i >= 0; i--)
+    {
+        binary_code[9 - i] = (num & (1 << i)) ? '1' : '0';
+    }
+    binary_code[10] = '\0';
+    printf("num: %d, binary code: %s\n", num, binary_code);
 }
 
 char *get_register_allocation_binary_code_base_4(char *str)

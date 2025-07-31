@@ -14,10 +14,9 @@
 void first_pass(char *file_name_without_postfix)
 {
     int IC = 0, DC = 0, line_num = 0;
-    char *temp_file_name, *file_name, line[LINE_SIZE], *word, *main_op, *array_of_operations = NULL;
+    char *temp_file_name, *file_name, line[LINE_SIZE], *word, *main_op, *array_of_operations = NULL, *array_of_data = NULL;
     FILE *file;
     symbol_item *symbol_table = NULL;
-    int *array_of_data = NULL;
 
     printf("first pass started\n");
 
@@ -26,6 +25,7 @@ void first_pass(char *file_name_without_postfix)
     {
         exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
     }
+
     strcpy(file_name, file_name_without_postfix);
     strcat(file_name, ".am");
 
@@ -80,7 +80,7 @@ void first_pass(char *file_name_without_postfix)
     update_data_labels(symbol_table, IC);
 }
 
-void handle_guide_line(symbol_item **symbol_table, char *line, int *array_of_data, int *DC)
+void handle_guide_line(symbol_item **symbol_table, char *line, char *array_of_data, int *DC)
 {
     char *guide, *label;
 
@@ -111,7 +111,7 @@ void handle_guide_line(symbol_item **symbol_table, char *line, int *array_of_dat
     }
 }
 
-void handle_data_guide(symbol_item **symbol_table, char *line, int *array_of_data, int *DC)
+void handle_data_guide(symbol_item **symbol_table, char *line, char *array_of_data, int *DC)
 {
     // check that line is of type: "label: .data num1, num2, ...., numn"
     char *word, *next_word;
@@ -156,19 +156,19 @@ void handle_data_guide(symbol_item **symbol_table, char *line, int *array_of_dat
         printf("num: %d\n", num);
 
         // allocate memo to array of data
-        array_of_data = realloc(array_of_data, (*DC + 1) * sizeof(int));
+        array_of_data = realloc(array_of_data, (*DC + 1) * BINARY_CODE_SIZE);
         if (array_of_data == NULL)
         {
             printf("error code is %d\n", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
             return;
         }
-        array_of_data[*DC] = num;
+        array_of_data[*DC] = convert_num_to_10_bits(num);
         i++;
         (*DC)++;
     }
 }
 
-void handle_string_guide(symbol_item **symbol_table, char *line, int *array_of_data, int *DC)
+void handle_string_guide(symbol_item **symbol_table, char *line, char *array_of_data, int *DC)
 {
     // check that line is of type: "label: .string "string""
     int i = 0;
@@ -218,16 +218,16 @@ void handle_string_guide(symbol_item **symbol_table, char *line, int *array_of_d
             return;
         }
         printf("asci val: %d \n", (int)c);
-        array_of_data[*DC] = (int)c;
+        array_of_data[*DC] = convert_num_to_10_bits((int)c);
         (*DC)++;
     }
 
     // add end of string char
-    array_of_data[*DC] = (int)'\0';
+    array_of_data[*DC] = convert_num_to_10_bits((int)'\0');
     (*DC)++;
 }
 
-void handle_mat_guide(symbol_item **symbol_table, int *array_of_data, char *line, int *DC)
+void handle_mat_guide(symbol_item **symbol_table, char *array_of_data, char *line, int *DC)
 {
     // check that line is of type: "label: .mat [num1][num2] optional numbers seperated by comma
     char *word, *next_word;
@@ -298,7 +298,7 @@ void handle_mat_guide(symbol_item **symbol_table, int *array_of_data, char *line
             return;
         }
         printf("num: %d\n", num);
-        array_of_data[*DC] = num;
+        array_of_data[*DC] = convert_num_to_10_bits(num);
         (*DC)++;
     }
 
