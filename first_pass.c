@@ -13,10 +13,13 @@
 
 void first_pass(char *file_name_without_postfix)
 {
-    int IC = 0, DC = 0, line_num = 0;
-    char *temp_file_name, *file_name, line[LINE_SIZE], *word, *main_op, *array_of_operations = NULL, *array_of_data = NULL;
+    int IC = 0, DC = 0, line_num = 0, i = 0;
+    char *temp_file_name, *file_name, line[LINE_SIZE], *word, *main_op, **array_of_commands = NULL, **array_of_data = NULL;
     FILE *file;
     symbol_item *symbol_table = NULL;
+
+    array_of_commands = malloc(sizeof(char *));
+    array_of_data = malloc(sizeof(char *));
 
     printf("first pass started\n");
 
@@ -59,7 +62,7 @@ void first_pass(char *file_name_without_postfix)
 
         if (is_data_guide(main_op) || is_string_guide(main_op) || is_mat_guide(main_op))
         {
-            handle_guide_line(&symbol_table, line, array_of_data, &DC);
+            handle_guide_line(&symbol_table, line, &array_of_data, &DC);
         }
         else if (is_extern_guide(main_op))
         {
@@ -72,15 +75,29 @@ void first_pass(char *file_name_without_postfix)
         }
         else
         {
-            /* not all the above? must be an operation line */
-            handle_operation_line(&symbol_table, line, array_of_operations, &IC);
+            /* not all the above? must be an command line */
+            handle_command_line(&symbol_table, line, &array_of_commands, &IC);
         }
+    }
+
+    // loop data array and prints it values
+    printf("data array (%d):\n", DC);
+    for (i = 0; i < DC; i++)
+    {
+        printf("data: %s\n", array_of_data[i]);
+    }
+
+    // loop commands array and prints it values
+    printf("commands array (%d):\n", IC);
+    for (i = 0; i < IC; i++)
+    {
+        printf("command: %s\n", array_of_commands[i]);
     }
 
     update_data_labels(symbol_table, IC);
 }
 
-void handle_guide_line(symbol_item **symbol_table, char *line, char *array_of_data, int *DC)
+void handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
 {
     char *guide, *label;
 
@@ -111,7 +128,7 @@ void handle_guide_line(symbol_item **symbol_table, char *line, char *array_of_da
     }
 }
 
-void handle_data_guide(symbol_item **symbol_table, char *line, char *array_of_data, int *DC)
+void handle_data_guide(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
 {
     // check that line is of type: "label: .data num1, num2, ...., numn"
     char *word, *next_word;
@@ -156,19 +173,27 @@ void handle_data_guide(symbol_item **symbol_table, char *line, char *array_of_da
         printf("num: %d\n", num);
 
         // allocate memo to array of data
-        array_of_data = realloc(array_of_data, (*DC + 1) * BINARY_CODE_SIZE);
-        if (array_of_data == NULL)
+        *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
+        if (*array_of_data == NULL)
         {
             printf("error code is %d\n", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
             return;
         }
-        array_of_data[*DC] = convert_num_to_10_bits(num);
+        (*array_of_data)[*DC] = convert_num_to_10_bits(num);
+        printf("here is data: %s\n", (*array_of_data)[*DC]);
         i++;
         (*DC)++;
     }
+
+    // loop data array and prints it values
+    printf("data array (%d):\n", *DC);
+    for (i = 0; i < *DC; i++)
+    {
+        printf("here is data: %s\n", (*array_of_data)[i]);
+    }
 }
 
-void handle_string_guide(symbol_item **symbol_table, char *line, char *array_of_data, int *DC)
+void handle_string_guide(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
 {
     // check that line is of type: "label: .string "string""
     int i = 0;
@@ -211,23 +236,24 @@ void handle_string_guide(symbol_item **symbol_table, char *line, char *array_of_
         c = rest_str[i];
         printf("c: %c\n", c);
         // allocate memo to array of data
-        array_of_data = realloc(array_of_data, (*DC + 1) * sizeof(int));
-        if (array_of_data == NULL)
+        *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
+        if (*array_of_data == NULL)
         {
             printf("error code is %d\n", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
             return;
         }
         printf("asci val: %d \n", (int)c);
-        array_of_data[*DC] = convert_num_to_10_bits((int)c);
+        (*array_of_data)[*DC] = convert_num_to_10_bits((int)c);
         (*DC)++;
     }
 
+    *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
     // add end of string char
-    array_of_data[*DC] = convert_num_to_10_bits((int)'\0');
+    (*array_of_data)[*DC] = convert_num_to_10_bits((int)'\0');
     (*DC)++;
 }
 
-void handle_mat_guide(symbol_item **symbol_table, char *array_of_data, char *line, int *DC)
+void handle_mat_guide(symbol_item **symbol_table, char ***array_of_data, char *line, int *DC)
 {
     // check that line is of type: "label: .mat [num1][num2] optional numbers seperated by comma
     char *word, *next_word;
@@ -291,14 +317,14 @@ void handle_mat_guide(symbol_item **symbol_table, char *array_of_data, char *lin
             num = atoi(next_word);
         }
         // allocate memo to array of data
-        array_of_data = realloc(array_of_data, (*DC + 1) * sizeof(int));
-        if (array_of_data == NULL)
+        *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
+        if (*array_of_data == NULL)
         {
             printf("error code is %d\n, ", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
             return;
         }
         printf("num: %d\n", num);
-        array_of_data[*DC] = convert_num_to_10_bits(num);
+        (*array_of_data)[*DC] = convert_num_to_10_bits(num);
         (*DC)++;
     }
 
@@ -346,62 +372,62 @@ void handle_extern(symbol_item **symbol_table, char *line)
     add_label_to_symbol_table(symbol_table, next_word, "external", 0);
 }
 
-void handle_operation_line(symbol_item **symbol_table, char *line, char *array_of_operations, int *IC)
+void handle_command_line(symbol_item **symbol_table, char *line, char ***array_of_commands, int *IC)
 {
-    char *op, *label, *rest_of_line;
-    int op_index;
+    char *command, *label, *rest_of_line;
+    int command_index;
 
     label = strtok(strdup(line), " ");
     delete_white_spaces(label);
     if (is_label(label))
     {
         add_label_to_symbol_table(symbol_table, label, "code", *IC);
-        op = strtok(NULL, " ");
-        delete_white_spaces(op);
+        command = strtok(NULL, " ");
+        delete_white_spaces(command);
     }
     else
     {
-        op = strdup(label);
+        command = strdup(label);
     }
 
-    op_index = get_operation_index(op);
-    if (op_index == -1)
+    command_index = get_command_index(command);
+    if (command_index == -1)
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_OPERATION);
+        printf("error code is %d\n", PROCESS_ERROR_INVALID_COMMAND);
         return;
     }
 
     rest_of_line = strtok(NULL, "\n");
     printf("rest of line: %s\n", rest_of_line);
 
-    switch (op_index)
+    switch (command_index)
     {
-    case OPERATION_MOV:
-    case OPERATION_CMP:
-    case OPERATION_ADD:
-    case OPERATION_SUB:
-    case OPERATION_LEA:
-        handle_two_op_line(op_index, rest_of_line, array_of_operations, IC);
+    case COMMAND_MOV:
+    case COMMAND_CMP:
+    case COMMAND_ADD:
+    case COMMAND_SUB:
+    case COMMAND_LEA:
+        handle_two_op_line(command_index, rest_of_line, array_of_commands, IC);
         break;
-    case OPERATION_CLR:
-    case OPERATION_NOT:
-    case OPERATION_INC:
-    case OPERATION_DEC:
-    case OPERATION_JMP:
-    case OPERATION_BNE:
-    case OPERATION_JSR:
-    case OPERATION_RED:
-    case OPERATION_PRN:
-        handle_one_op_line(op_index, rest_of_line, array_of_operations, IC);
+    case COMMAND_CLR:
+    case COMMAND_NOT:
+    case COMMAND_INC:
+    case COMMAND_DEC:
+    case COMMAND_JMP:
+    case COMMAND_BNE:
+    case COMMAND_JSR:
+    case COMMAND_RED:
+    case COMMAND_PRN:
+        handle_one_op_line(command_index, rest_of_line, array_of_commands, IC);
         break;
-    case OPERATION_RTS:
-    case OPERATION_STOP:
-        handle_no_op_line(op_index, rest_of_line, array_of_operations, IC);
+    case COMMAND_RTS:
+    case COMMAND_STOP:
+        handle_no_op_line(command_index, rest_of_line, array_of_commands, IC);
         break;
     }
 }
 
-void handle_no_op_line(int op_index, char *str, char *array_of_operations, int *IC)
+void handle_no_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
 {
     // ensure str is empty
     if (str != NULL && !is_empty_line(str))
@@ -410,10 +436,10 @@ void handle_no_op_line(int op_index, char *str, char *array_of_operations, int *
         return;
     }
 
-    return handle_op(op_index, str, NULL, NULL, array_of_operations, IC);
+    return handle_op_line(command_index, str, NULL, NULL, array_of_commands, IC);
 }
 
-void handle_one_op_line(int op_index, char *str, char *array_of_operations, int *IC)
+void handle_one_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
 {
     char *dst, *line_binary_code, *src_binary_code, *dst_binary_code;
     int src_type, dst_type, src_space, dst_space, L = 0, i = 0;
@@ -426,11 +452,11 @@ void handle_one_op_line(int op_index, char *str, char *array_of_operations, int 
     }
     delete_white_spaces(dst);
     printf("dst: %s\n", dst);
-    handle_op(op_index, str, NULL, dst, array_of_operations, IC);
+    handle_op_line(command_index, str, NULL, dst, array_of_commands, IC);
     return;
 }
 
-void handle_two_op_line(int op_index, char *str, char *array_of_operations, int *IC)
+void handle_two_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
 {
     char *src, *dst, *line_binary_code, *src_binary_code, *dst_binary_code;
     int src_type, dst_type, src_space, dst_space, L = 0, i = 0;
@@ -451,10 +477,10 @@ void handle_two_op_line(int op_index, char *str, char *array_of_operations, int 
     }
     delete_white_spaces(dst);
     printf("src: %s, dst: %s\n", src, dst);
-    handle_op(op_index, str, src, dst, array_of_operations, IC);
+    handle_op_line(command_index, str, src, dst, array_of_commands, IC);
 }
 
-void handle_op(int op_index, char *str, char *src, char *dst, char *array_of_operations, int *IC)
+void handle_op_line(int command_index, char *str, char *src, char *dst, char ***array_of_commands, int *IC)
 {
     char *line_binary_code, *src_binary_code, *dst_binary_code;
     int src_type, dst_type, src_space, dst_space, L = 0;
@@ -464,7 +490,7 @@ void handle_op(int op_index, char *str, char *src, char *dst, char *array_of_ope
     dst_type = get_allocation_type(dst);
     printf("dst type: %d\n", dst_type);
 
-    if (!is_op_src_dst_valid(op_index, src_type, dst_type))
+    if (!is_command_src_dst_valid(command_index, src_type, dst_type))
     {
         return;
     }
@@ -473,58 +499,47 @@ void handle_op(int op_index, char *str, char *src, char *dst, char *array_of_ope
     printf("Space size for line: %d\n", L);
 
     line_binary_code = malloc(BINARY_CODE_SIZE);
-    add_operation_line_binary_code(line_binary_code, str, op_index, src_type, dst_type, array_of_operations, IC);
+    add_command_line_binary_code(line_binary_code, str, command_index, src_type, dst_type);
     printf("line binary code: %s\n", line_binary_code);
 
-    array_of_operations = realloc(array_of_operations, (*IC + L) * BINARY_CODE_SIZE);
-    array_of_operations[*IC] = strdup(line_binary_code);
+    *array_of_commands = realloc(*array_of_commands, (*IC + L) * sizeof(char *));
+    (*array_of_commands)[*IC] = malloc(BINARY_CODE_SIZE);
+    (*array_of_commands)[*IC] = strdup(line_binary_code);
     free(line_binary_code);
     (*IC)++;
 
+    printf("handling: operands src: %s, dst: %s\n", src, dst);
     if (src_type == ALLOCATION_REGISTER && dst_type == ALLOCATION_REGISTER)
     {
-        array_of_operations[*IC] = get_register_allocations_binary_code(src, dst);
+        (*array_of_commands)[*IC] = get_register_allocations_binary_code(src, dst);
         (*IC)++;
         return;
     }
 
-    if (src_type == ALLOCATION_REGISTER)
+    encode_first_pass_operands(src, src_type, src_space, IC, array_of_commands);
+    encode_first_pass_operands(dst, dst_type, dst_space, IC, array_of_commands);
+}
+
+int encode_first_pass_operands(char *op, int type, int space, int *IC, char ***array_of_commands)
+{
+    if (type == ALLOCATION_REGISTER)
     {
-        array_of_operations[*IC] = get_register_allocation_binary_code(src);
+        (*array_of_commands)[*IC] = get_register_allocation_binary_code(op);
     }
-    else if (src_type == ALLOCATION_MAT)
+    else if (type == ALLOCATION_MAT)
     {
-        set_first_pass_mat_allocation_binary_code(src, array_of_operations, *IC);
+        set_first_pass_mat_allocation_binary_code(op, array_of_commands, *IC);
     }
-    else if (src_type == ALLOCATION_DIRECT)
+    else if (type == ALLOCATION_DIRECT)
     {
-        array_of_operations[*IC] = NULL;
+        (*array_of_commands)[*IC] = NULL;
     }
-    else if (src_type == ALLOCATION_IMMEDIATE)
+    else if (type == ALLOCATION_IMMEDIATE)
     {
-        array_of_operations[*IC] = get_direct_allocation_binary_code(src);
+        (*array_of_commands)[*IC] = get_direct_allocation_binary_code(op);
     }
 
-    (*IC) = *IC + src_space;
-
-    if (dst_type == ALLOCATION_REGISTER)
-    {
-        array_of_operations[*IC] = get_register_allocation_binary_code(dst);
-    }
-    else if (dst_type == ALLOCATION_MAT)
-    {
-        set_first_pass_mat_allocation_binary_code(dst, array_of_operations, *IC);
-    }
-    else if (dst_type == ALLOCATION_DIRECT)
-    {
-        array_of_operations[*IC] = NULL;
-    }
-    else if (dst_type == ALLOCATION_IMMEDIATE)
-    {
-        array_of_operations[*IC] = get_direct_allocation_binary_code(dst);
-    }
-
-    (*IC) = *IC + dst_space;
+    (*IC) = *IC + space;
 }
 
 int calculate_space(int src_type, int dst_type, int *src_space, int *dst_space)
@@ -565,40 +580,40 @@ int calculate_space(int src_type, int dst_type, int *src_space, int *dst_space)
     return L;
 }
 
-int is_op_src_dst_valid(int op_index, int src_type, int dst_type)
+int is_command_src_dst_valid(int command_index, int src_type, int dst_type)
 {
     int invalid = 0;
-    printf("op index: %d, src type: %d, dst type: %d\n", op_index, src_type, dst_type);
+    printf("command index: %d, src type: %d, dst type: %d\n", command_index, src_type, dst_type);
 
     // check src
-    switch (op_index)
+    switch (command_index)
     {
-    case OPERATION_MOV:
-    case OPERATION_CMP:
-    case OPERATION_ADD:
-    case OPERATION_SUB:
+    case COMMAND_MOV:
+    case COMMAND_CMP:
+    case COMMAND_ADD:
+    case COMMAND_SUB:
         if (src_type != ALLOCATION_IMMEDIATE && src_type != ALLOCATION_DIRECT && src_type != ALLOCATION_MAT && src_type != ALLOCATION_REGISTER)
         {
             invalid = 1;
         }
         break;
-    case OPERATION_LEA:
+    case COMMAND_LEA:
         if (src_type != ALLOCATION_DIRECT && src_type != ALLOCATION_MAT)
         {
             invalid = 1;
         }
         break;
-    case OPERATION_CLR:
-    case OPERATION_NOT:
-    case OPERATION_INC:
-    case OPERATION_DEC:
-    case OPERATION_JMP:
-    case OPERATION_BNE:
-    case OPERATION_JSR:
-    case OPERATION_RED:
-    case OPERATION_PRN:
-    case OPERATION_RTS:
-    case OPERATION_STOP:
+    case COMMAND_CLR:
+    case COMMAND_NOT:
+    case COMMAND_INC:
+    case COMMAND_DEC:
+    case COMMAND_JMP:
+    case COMMAND_BNE:
+    case COMMAND_JSR:
+    case COMMAND_RED:
+    case COMMAND_PRN:
+    case COMMAND_RTS:
+    case COMMAND_STOP:
         if (src_type != ALLOCATION_MISSING)
         {
             invalid = 1;
@@ -613,34 +628,34 @@ int is_op_src_dst_valid(int op_index, int src_type, int dst_type)
 
     invalid = 0;
     // check dst
-    switch (op_index)
+    switch (command_index)
     {
-    case OPERATION_MOV:
-    case OPERATION_ADD:
-    case OPERATION_SUB:
-    case OPERATION_LEA:
-    case OPERATION_CLR:
-    case OPERATION_NOT:
-    case OPERATION_INC:
-    case OPERATION_DEC:
-    case OPERATION_JMP:
-    case OPERATION_BNE:
-    case OPERATION_JSR:
-    case OPERATION_RED:
+    case COMMAND_MOV:
+    case COMMAND_ADD:
+    case COMMAND_SUB:
+    case COMMAND_LEA:
+    case COMMAND_CLR:
+    case COMMAND_NOT:
+    case COMMAND_INC:
+    case COMMAND_DEC:
+    case COMMAND_JMP:
+    case COMMAND_BNE:
+    case COMMAND_JSR:
+    case COMMAND_RED:
         if (dst_type != ALLOCATION_DIRECT && dst_type != ALLOCATION_MAT && dst_type != ALLOCATION_REGISTER)
         {
             invalid = 1;
         }
         break;
-    case OPERATION_PRN:
-    case OPERATION_CMP:
+    case COMMAND_PRN:
+    case COMMAND_CMP:
         if (dst_type != ALLOCATION_IMMEDIATE && dst_type != ALLOCATION_DIRECT && dst_type != ALLOCATION_MAT && dst_type != ALLOCATION_REGISTER)
         {
             invalid = 1;
         }
         break;
-    case OPERATION_RTS:
-    case OPERATION_STOP:
+    case COMMAND_RTS:
+    case COMMAND_STOP:
         if (dst_type != ALLOCATION_MISSING)
         {
             invalid = 1;

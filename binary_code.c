@@ -6,24 +6,24 @@
 #include "Headers/consts.h"
 #include "Headers/binary_code.h"
 
-void add_operation_line_binary_code(char *binary_code, char *str, int op_index, int src_type, int dst_type, char *array_of_operations, int *IC)
+void add_command_line_binary_code(char *binary_code, char *str, int command_index, int src_type, int dst_type)
 {
-    char *op_code, *ARE_code, *src_type_code, *dst_type_code;
-    op_code = get_line_op_binary_code(op_index);
+    char *command_code, *ARE_code, *src_type_code, *dst_type_code;
+    command_code = get_line_command_binary_code(command_index);
     ARE_code = get_line_ARE_binary_code(str);
     src_type_code = get_allocation_type_binary_code(src_type);
     dst_type_code = get_allocation_type_binary_code(dst_type);
     // copy and concat all to binary_code
-    strcpy(binary_code, op_code);
+    strcpy(binary_code, command_code);
     strcat(binary_code, src_type_code);
     strcat(binary_code, dst_type_code);
     strcat(binary_code, ARE_code);
     printf("binary code: %s\n", binary_code);
 }
 
-char *get_line_op_binary_code(int op_index)
+char *get_line_command_binary_code(int command_index)
 {
-    switch (op_index)
+    switch (command_index)
     {
     case 0:
         return "0000";
@@ -130,6 +130,7 @@ char *convert_num_to_10_bits(int num)
     }
     binary_code[10] = '\0';
     printf("num: %d, binary code: %s\n", num, binary_code);
+    return binary_code;
 }
 
 char *get_register_allocation_binary_code_base_4(char *str)
@@ -185,7 +186,7 @@ char *get_register_allocations_binary_code(char *src, char *dst)
     return binary_code;
 }
 
-void set_first_pass_mat_allocation_binary_code(char *str, char *array_of_operations, int IC)
+void set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_commands, int IC)
 {
     // we dont care about the label encode in first pass
     int valid;
@@ -199,7 +200,7 @@ void set_first_pass_mat_allocation_binary_code(char *str, char *array_of_operati
     {
         temp++;
     }
-    array_of_operations[IC] = NULL;
+    (*array_of_commands)[IC] = NULL;
     IC++;
 
     // get registers from mat encode
@@ -209,6 +210,6 @@ void set_first_pass_mat_allocation_binary_code(char *str, char *array_of_operati
         return;
     }
 
-    array_of_operations[IC] = get_register_allocations_binary_code(reg1, reg2);
+    (*array_of_commands)[IC] = get_register_allocations_binary_code(reg1, reg2);
     IC++;
 }

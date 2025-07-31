@@ -6,7 +6,7 @@
 #include "Headers/string.h"
 #include "Headers/utils.h"
 
-char *operations[16] = {
+char *commands[16] = {
     "mov",
     "cmp",
     "add",
@@ -205,7 +205,7 @@ int is_entry_guide(char *word)
     return is_word_guide(word, GUIDE_ENTRY);
 }
 
-int get_operation_index(char *word)
+int get_command_index(char *word)
 {
     int i;
 
@@ -216,7 +216,7 @@ int get_operation_index(char *word)
 
     for (i = 0; i < 16; i++)
     {
-        if (strcmp(word, operations[i]) == 0)
+        if (strcmp(word, commands[i]) == 0)
         {
             return i;
         }
@@ -225,9 +225,9 @@ int get_operation_index(char *word)
     return -1;
 }
 
-int is_operation(char *word)
+int is_command(char *word)
 {
-    return get_operation_index(word) != -1;
+    return get_command_index(word) != -1;
 }
 
 int is_register(char *word)
