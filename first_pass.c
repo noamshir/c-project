@@ -95,6 +95,14 @@ void first_pass(char *file_name_without_postfix)
     }
 
     update_data_labels(symbol_table, IC);
+
+    free(file_name);
+    free(array_of_commands);
+    free(array_of_data);
+    free(symbol_table);
+    fclose(file);
+
+    printf("first pass finished\n");
 }
 
 void handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
