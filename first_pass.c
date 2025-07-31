@@ -99,13 +99,14 @@ void first_pass(char *file_name_without_postfix)
 
 void handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
 {
-    char *guide, *label;
+    char *guide, *label, *label_name;
 
     label = strtok(strdup(line), " ");
     delete_white_spaces(label);
     if (is_label(label))
     {
-        add_label_to_symbol_table(symbol_table, label, "data", *DC);
+        label_name = get_label_name(label);
+        add_label_to_symbol_table(symbol_table, label_name, "data", *DC);
         guide = strtok(NULL, " ");
         delete_white_spaces(guide);
     }
@@ -374,14 +375,15 @@ void handle_extern(symbol_item **symbol_table, char *line)
 
 void handle_command_line(symbol_item **symbol_table, char *line, char ***array_of_commands, int *IC)
 {
-    char *command, *label, *rest_of_line;
+    char *command, *label, *label_name, *rest_of_line;
     int command_index;
 
     label = strtok(strdup(line), " ");
     delete_white_spaces(label);
     if (is_label(label))
     {
-        add_label_to_symbol_table(symbol_table, label, "code", *IC);
+        label_name = get_label_name(label);
+        add_label_to_symbol_table(symbol_table, label_name, "code", *IC);
         command = strtok(NULL, " ");
         delete_white_spaces(command);
     }

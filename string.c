@@ -167,6 +167,17 @@ int is_label(char *word)
     return 0;
 }
 
+char *get_label_name(char *word)
+{
+    if (!is_label(word))
+    {
+        return NULL;
+    }
+
+    // remove last char in word (:)
+    word[strlen(word) - 1] = '\0';
+    return word;
+}
 int is_word_guide(char *word, int guide_type)
 {
     if (word == NULL)

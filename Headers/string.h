@@ -9,6 +9,7 @@ int is_char_alphabetical_or_digit(char c);
 int is_char_alphabetical(char c);
 int is_char_digit(char c);
 int is_label(char *word);
+char *get_label_name(char *word);
 int is_word_guide(char *word, int guide_type);
 int is_data_guide(char *word);
 int is_string_guide(char *word);
