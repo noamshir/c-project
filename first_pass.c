@@ -13,7 +13,7 @@
 
 void first_pass(char *file_name_without_postfix)
 {
-    int IC = 0, DC = 0, line_num = 0, i = 0;
+    int IC = 0, DC = 0, line_num = 0, i = 0, is_line_valid = 0, has_errors = 0;
     char *temp_file_name, *file_name, line[LINE_SIZE], *word, *main_op, **array_of_commands = NULL, **array_of_data = NULL;
     FILE *file;
     symbol_item *symbol_table = NULL;
@@ -26,7 +26,7 @@ void first_pass(char *file_name_without_postfix)
     file_name = malloc(strlen(file_name_without_postfix) + 4);
     if (file_name == NULL)
     {
-        exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
     }
 
     strcpy(file_name, file_name_without_postfix);
@@ -35,7 +35,7 @@ void first_pass(char *file_name_without_postfix)
     file = fopen(file_name, "r");
     if (file == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_FAILED_TO_OPEN_FILE);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return;
     }
 
@@ -62,11 +62,11 @@ void first_pass(char *file_name_without_postfix)
 
         if (is_data_guide(main_op) || is_string_guide(main_op) || is_mat_guide(main_op))
         {
-            handle_guide_line(&symbol_table, line, &array_of_data, &DC);
+            is_line_valid = handle_guide_line(&symbol_table, line, &array_of_data, &DC);
         }
         else if (is_extern_guide(main_op))
         {
-            handle_extern(&symbol_table, line);
+            is_line_valid = handle_extern(&symbol_table, line);
         }
         else if (is_entry_guide(main_op))
         {
@@ -76,8 +76,18 @@ void first_pass(char *file_name_without_postfix)
         else
         {
             /* not all the above? must be an command line */
-            handle_command_line(&symbol_table, line, &array_of_commands, &IC);
+            is_line_valid = handle_command_line(&symbol_table, line, &array_of_commands, &IC);
         }
+
+        if (!is_line_valid)
+        {
+            has_errors = 1;
+        }
+    }
+
+    if (has_errors)
+    {
+        safe_exit(PROCESS_ERROR_FIRST_PASS_FAILED);
     }
 
     // loop data array and prints it values
@@ -105,8 +115,9 @@ void first_pass(char *file_name_without_postfix)
     printf("first pass finished\n");
 }
 
-void handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
+int handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
 {
+    int is_valid;
     char *guide, *label, *label_name;
 
     label = strtok(strdup(line), " ");
@@ -114,7 +125,10 @@ void handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_
     if (is_label(label))
     {
         label_name = get_label_name(label);
-        add_label_to_symbol_table(symbol_table, label_name, "data", *DC);
+        if (!add_label_to_symbol_table(symbol_table, label_name, "data", *DC))
+        {
+            return 0;
+        }
         guide = strtok(NULL, " ");
         delete_white_spaces(guide);
     }
@@ -125,19 +139,21 @@ void handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_
 
     if (is_data_guide(guide))
     {
-        handle_data_guide(symbol_table, line, array_of_data, DC);
+        is_valid = handle_data_guide(symbol_table, line, array_of_data, DC);
     }
     else if (is_string_guide(guide))
     {
-        handle_string_guide(symbol_table, line, array_of_data, DC);
+        is_valid = handle_string_guide(symbol_table, line, array_of_data, DC);
     }
     else if (is_mat_guide(guide))
     {
-        handle_mat_guide(symbol_table, array_of_data, line, DC);
+        is_valid = handle_mat_guide(symbol_table, array_of_data, line, DC);
     }
+
+    return is_valid;
 }
 
-void handle_data_guide(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
+int handle_data_guide(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
 {
     // check that line is of type: "label: .data num1, num2, ...., numn"
     char *word, *next_word;
@@ -151,14 +167,14 @@ void handle_data_guide(symbol_item **symbol_table, char *line, char ***array_of_
         delete_white_spaces(word);
         if (!is_data_guide(word))
         {
-            printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-            return;
+            print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+            return 0;
         }
     }
     else if (!is_data_guide(word))
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
 
     // get all the numbers in line, increase DC and enter them to the array of data
@@ -173,8 +189,8 @@ void handle_data_guide(symbol_item **symbol_table, char *line, char ***array_of_
         delete_white_spaces(next_word);
         if (!is_integer(next_word))
         {
-            printf("error code is %d\n", PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM);
-            return;
+            print_error(PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM);
+            return 0;
         }
 
         num = atoi(next_word);
@@ -185,24 +201,17 @@ void handle_data_guide(symbol_item **symbol_table, char *line, char ***array_of_
         *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
         if (*array_of_data == NULL)
         {
-            printf("error code is %d\n", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-            return;
+            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
         (*array_of_data)[*DC] = convert_num_to_10_bits(num);
-        printf("here is data: %s\n", (*array_of_data)[*DC]);
         i++;
         (*DC)++;
     }
 
-    // loop data array and prints it values
-    printf("data array (%d):\n", *DC);
-    for (i = 0; i < *DC; i++)
-    {
-        printf("here is data: %s\n", (*array_of_data)[i]);
-    }
+    return 1;
 }
 
-void handle_string_guide(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
+int handle_string_guide(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
 {
     // check that line is of type: "label: .string "string""
     int i = 0;
@@ -215,28 +224,28 @@ void handle_string_guide(symbol_item **symbol_table, char *line, char ***array_o
         delete_white_spaces(word);
         if (!is_string_guide(word))
         {
-            printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-            return;
+            print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+            return 0;
         }
     }
     else if (!is_string_guide(word))
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
 
     rest_str = strtok(NULL, "\n");
     if (rest_str == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
 
     if (rest_str[0] != '\"' || rest_str[strlen(rest_str) - 1] != '\"')
     {
         printf("first is %c, last is %c\n", rest_str[0], rest_str[strlen(rest_str) - 1]);
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
 
     // insert each char asci value to array of data and increment dc until end of quate
@@ -248,8 +257,7 @@ void handle_string_guide(symbol_item **symbol_table, char *line, char ***array_o
         *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
         if (*array_of_data == NULL)
         {
-            printf("error code is %d\n", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-            return;
+            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
         printf("asci val: %d \n", (int)c);
         (*array_of_data)[*DC] = convert_num_to_10_bits((int)c);
@@ -257,12 +265,19 @@ void handle_string_guide(symbol_item **symbol_table, char *line, char ***array_o
     }
 
     *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
+    if (*array_of_data == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+
     // add end of string char
     (*array_of_data)[*DC] = convert_num_to_10_bits((int)'\0');
     (*DC)++;
+
+    return 1;
 }
 
-void handle_mat_guide(symbol_item **symbol_table, char ***array_of_data, char *line, int *DC)
+int handle_mat_guide(symbol_item **symbol_table, char ***array_of_data, char *line, int *DC)
 {
     // check that line is of type: "label: .mat [num1][num2] optional numbers seperated by comma
     char *word, *next_word;
@@ -276,34 +291,34 @@ void handle_mat_guide(symbol_item **symbol_table, char ***array_of_data, char *l
         delete_white_spaces(word);
         if (!is_mat_guide(word))
         {
-            printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-            return;
+            print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+            return 0;
         }
     }
     else if (!is_mat_guide(word))
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
 
     next_word = strtok(NULL, " ");
     if (next_word == NULL)
     {
-        printf("error code is %d\n, ", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
 
     // check that next word is [num1][num2]
     if (!is_mat_declaration(next_word))
     {
-        printf("error code is %d\n, ", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
 
     if (!set_rows_and_cols_from_mat_declaration(next_word, &rows, &cols))
     {
-        printf("error code is %d\n, ", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
     printf("rows: %d, cols: %d\n", rows, cols);
 
@@ -320,8 +335,8 @@ void handle_mat_guide(symbol_item **symbol_table, char ***array_of_data, char *l
             delete_white_spaces(next_word);
             if (!is_integer(next_word))
             {
-                printf("error code is %d\n, ", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-                return;
+                print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+                return 0;
             }
             num = atoi(next_word);
         }
@@ -329,9 +344,9 @@ void handle_mat_guide(symbol_item **symbol_table, char ***array_of_data, char *l
         *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
         if (*array_of_data == NULL)
         {
-            printf("error code is %d\n, ", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-            return;
+            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
+
         printf("num: %d\n", num);
         (*array_of_data)[*DC] = convert_num_to_10_bits(num);
         (*DC)++;
@@ -341,12 +356,14 @@ void handle_mat_guide(symbol_item **symbol_table, char ***array_of_data, char *l
     printf("next word: %s\n", next_word);
     if (next_word != NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
+
+    return 1;
 }
 
-void handle_extern(symbol_item **symbol_table, char *line)
+int handle_extern(symbol_item **symbol_table, char *line)
 {
     // check that line is of type: "label: .extern operand"
     char *word, *next_word;
@@ -360,28 +377,29 @@ void handle_extern(symbol_item **symbol_table, char *line)
         delete_white_spaces(word);
         if (!is_extern_guide(word))
         {
-            printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-            return;
+            print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+            return 0;
         }
     }
     else if (!is_extern_guide(word))
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
 
     next_word = strtok(NULL, " ");
     if (next_word == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        return 0;
     }
+
     delete_white_spaces(next_word);
     printf("next word: %s\n", next_word);
-    add_label_to_symbol_table(symbol_table, next_word, "external", 0);
+    return add_label_to_symbol_table(symbol_table, next_word, "external", 0);
 }
 
-void handle_command_line(symbol_item **symbol_table, char *line, char ***array_of_commands, int *IC)
+int handle_command_line(symbol_item **symbol_table, char *line, char ***array_of_commands, int *IC)
 {
     char *command, *label, *label_name, *rest_of_line;
     int command_index;
@@ -391,7 +409,10 @@ void handle_command_line(symbol_item **symbol_table, char *line, char ***array_o
     if (is_label(label))
     {
         label_name = get_label_name(label);
-        add_label_to_symbol_table(symbol_table, label_name, "code", *IC);
+        if (!add_label_to_symbol_table(symbol_table, label_name, "code", *IC))
+        {
+            return 0;
+        }
         command = strtok(NULL, " ");
         delete_white_spaces(command);
     }
@@ -403,8 +424,8 @@ void handle_command_line(symbol_item **symbol_table, char *line, char ***array_o
     command_index = get_command_index(command);
     if (command_index == -1)
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_COMMAND);
-        return;
+        print_error(PROCESS_ERROR_INVALID_COMMAND);
+        return 0;
     }
 
     rest_of_line = strtok(NULL, "\n");
@@ -417,7 +438,7 @@ void handle_command_line(symbol_item **symbol_table, char *line, char ***array_o
     case COMMAND_ADD:
     case COMMAND_SUB:
     case COMMAND_LEA:
-        handle_two_op_line(command_index, rest_of_line, array_of_commands, IC);
+        return handle_two_op_line(command_index, rest_of_line, array_of_commands, IC);
         break;
     case COMMAND_CLR:
     case COMMAND_NOT:
@@ -428,28 +449,31 @@ void handle_command_line(symbol_item **symbol_table, char *line, char ***array_o
     case COMMAND_JSR:
     case COMMAND_RED:
     case COMMAND_PRN:
-        handle_one_op_line(command_index, rest_of_line, array_of_commands, IC);
+        return handle_one_op_line(command_index, rest_of_line, array_of_commands, IC);
         break;
     case COMMAND_RTS:
     case COMMAND_STOP:
-        handle_no_op_line(command_index, rest_of_line, array_of_commands, IC);
+        return handle_no_op_line(command_index, rest_of_line, array_of_commands, IC);
         break;
+    default:
+        print_error(PROCESS_ERROR_INVALID_COMMAND);
+        return 0;
     }
 }
 
-void handle_no_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
+int handle_no_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
 {
     // ensure str is empty
     if (str != NULL && !is_empty_line(str))
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_NO_OP_LINE);
-        return;
+        print_error(PROCESS_ERROR_INVALID_NO_OP_LINE);
+        return 0;
     }
 
     return handle_op_line(command_index, str, NULL, NULL, array_of_commands, IC);
 }
 
-void handle_one_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
+int handle_one_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
 {
     char *dst, *line_binary_code, *src_binary_code, *dst_binary_code;
     int src_type, dst_type, src_space, dst_space, L = 0, i = 0;
@@ -457,16 +481,17 @@ void handle_one_op_line(int command_index, char *str, char ***array_of_commands,
     dst = strdup(str);
     if (dst == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_DST_ALLOCATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_DST_ALLOCATION);
+        return 0;
     }
+
     delete_white_spaces(dst);
     printf("dst: %s\n", dst);
-    handle_op_line(command_index, str, NULL, dst, array_of_commands, IC);
-    return;
+
+    return handle_op_line(command_index, str, NULL, dst, array_of_commands, IC);
 }
 
-void handle_two_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
+int handle_two_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
 {
     char *src, *dst, *line_binary_code, *src_binary_code, *dst_binary_code;
     int src_type, dst_type, src_space, dst_space, L = 0, i = 0;
@@ -474,46 +499,73 @@ void handle_two_op_line(int command_index, char *str, char ***array_of_commands,
     src = strtok(strdup(str), ",");
     if (src == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_SRC_ALLOCATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_SRC_ALLOCATION);
+        return 0;
     }
     delete_white_spaces(src);
 
     dst = strtok(NULL, ",");
     if (dst == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_DST_ALLOCATION);
-        return;
+        print_error(PROCESS_ERROR_INVALID_DST_ALLOCATION);
+        return 0;
     }
     delete_white_spaces(dst);
     printf("src: %s, dst: %s\n", src, dst);
-    handle_op_line(command_index, str, src, dst, array_of_commands, IC);
+
+    return handle_op_line(command_index, str, src, dst, array_of_commands, IC);
 }
 
-void handle_op_line(int command_index, char *str, char *src, char *dst, char ***array_of_commands, int *IC)
+int handle_op_line(int command_index, char *str, char *src, char *dst, char ***array_of_commands, int *IC)
 {
     char *line_binary_code, *src_binary_code, *dst_binary_code;
     int src_type, dst_type, src_space, dst_space, L = 0;
 
     src_type = get_allocation_type(src);
     printf("src type: %d\n", src_type);
+    if (src_type == ALLOCATION_INVALID)
+    {
+        print_error(PROCESS_ERROR_INVALID_SRC_ALLOCATION);
+        return 0;
+    }
+
     dst_type = get_allocation_type(dst);
     printf("dst type: %d\n", dst_type);
+    if (dst_space == ALLOCATION_INVALID)
+    {
+        print_error(PROCESS_ERROR_INVALID_DST_ALLOCATION);
+        return 0;
+    }
 
     if (!is_command_src_dst_valid(command_index, src_type, dst_type))
     {
-        return;
+        return 0;
     }
 
     L = calculate_space(src_type, dst_type, &src_space, &dst_space);
     printf("Space size for line: %d\n", L);
 
     line_binary_code = malloc(BINARY_CODE_SIZE);
+    if (line_binary_code == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+
     add_command_line_binary_code(line_binary_code, str, command_index, src_type, dst_type);
     printf("line binary code: %s\n", line_binary_code);
 
     *array_of_commands = realloc(*array_of_commands, (*IC + L) * sizeof(char *));
+    if (*array_of_commands == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+
     (*array_of_commands)[*IC] = malloc(BINARY_CODE_SIZE);
+    if ((*array_of_commands)[*IC] == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+
     (*array_of_commands)[*IC] = strdup(line_binary_code);
     free(line_binary_code);
     (*IC)++;
@@ -523,11 +575,15 @@ void handle_op_line(int command_index, char *str, char *src, char *dst, char ***
     {
         (*array_of_commands)[*IC] = get_register_allocations_binary_code(src, dst);
         (*IC)++;
-        return;
+        return 1;
     }
 
-    encode_first_pass_operands(src, src_type, src_space, IC, array_of_commands);
-    encode_first_pass_operands(dst, dst_type, dst_space, IC, array_of_commands);
+    if (!encode_first_pass_operands(src, src_type, src_space, IC, array_of_commands))
+    {
+        return 0;
+    }
+
+    return encode_first_pass_operands(dst, dst_type, dst_space, IC, array_of_commands);
 }
 
 int encode_first_pass_operands(char *op, int type, int space, int *IC, char ***array_of_commands)
@@ -538,7 +594,10 @@ int encode_first_pass_operands(char *op, int type, int space, int *IC, char ***a
     }
     else if (type == ALLOCATION_MAT)
     {
-        set_first_pass_mat_allocation_binary_code(op, array_of_commands, *IC);
+        if (!set_first_pass_mat_allocation_binary_code(op, array_of_commands, *IC))
+        {
+            return 0;
+        }
     }
     else if (type == ALLOCATION_DIRECT)
     {
@@ -550,6 +609,8 @@ int encode_first_pass_operands(char *op, int type, int space, int *IC, char ***a
     }
 
     (*IC) = *IC + space;
+
+    return 1;
 }
 
 int calculate_space(int src_type, int dst_type, int *src_space, int *dst_space)
@@ -632,7 +693,7 @@ int is_command_src_dst_valid(int command_index, int src_type, int dst_type)
 
     if (invalid)
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_SRC_ALLOCATION);
+        print_error(PROCESS_ERROR_INVALID_SRC_ALLOCATION);
         return 0;
     }
 
@@ -675,7 +736,7 @@ int is_command_src_dst_valid(int command_index, int src_type, int dst_type)
 
     if (invalid)
     {
-        printf("error code is %d\n", PROCESS_ERROR_INVALID_DST_ALLOCATION);
+        print_error(PROCESS_ERROR_INVALID_DST_ALLOCATION);
         return 0;
     }
 

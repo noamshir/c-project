@@ -18,7 +18,7 @@ symbol_item *create_symbol_item(char *name, char *type, int address)
     return item;
 }
 
-void add_label_to_symbol_table(symbol_item **head, char *name, char *type, int address)
+int add_label_to_symbol_table(symbol_item **head, char *name, char *type, int address)
 {
     symbol_item *item, *temp;
 
@@ -26,8 +26,8 @@ void add_label_to_symbol_table(symbol_item **head, char *name, char *type, int a
 
     if (find_symbol_item_by_name(*head, name) != NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_SYMBOL_ALREADY_EXISTS);
-        return;
+        print_error(PROCESS_ERROR_SYMBOL_ALREADY_EXISTS);
+        return 0;
     }
 
     if (*head == NULL)
@@ -37,11 +37,11 @@ void add_label_to_symbol_table(symbol_item **head, char *name, char *type, int a
     else
     {
         temp = malloc(sizeof(symbol_item));
-
         if (temp == NULL)
         {
             exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
+
         temp = *head;
         while (temp->next != NULL)
         {
@@ -54,6 +54,8 @@ void add_label_to_symbol_table(symbol_item **head, char *name, char *type, int a
         }
         temp->next = item;
     }
+
+    return 1;
 }
 
 symbol_item *find_symbol_item_by_name(symbol_item *head, char *name)

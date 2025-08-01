@@ -9,6 +9,7 @@ typedef enum PROCESS_ERROR_CODES
     /* files */
     PROCESS_ERROR_FAILED_TO_OPEN_FILE,
     /* first pass */
+    PROCESS_ERROR_FIRST_PASS_FAILED,
     PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM,
     PROCESS_ERROR_INVALID_COMMAND,
     PROCESS_ERROR_INVALID_NO_OP_LINE,
@@ -18,3 +19,6 @@ typedef enum PROCESS_ERROR_CODES
     /* symbol table */
     PROCESS_ERROR_SYMBOL_ALREADY_EXISTS
 } PROCESS_ERROR_CODES;
+
+void print_error(int error_code);
+void safe_exit(int error_code);

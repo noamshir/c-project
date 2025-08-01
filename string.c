@@ -365,7 +365,7 @@ int get_allocation_type(char *word)
         return ALLOCATION_DIRECT;
     }
 
-    return -999;
+    return ALLOCATION_INVALID;
 }
 
 int is_immediate_allocation(char *word)
@@ -428,8 +428,7 @@ int is_mat_allocation(char *word)
         label = realloc(label, i);
         if (label == NULL)
         {
-            printf("error code is %d\n", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-            return 0;
+            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
         label[i - 1] = *temp;
         temp++;
@@ -471,7 +470,7 @@ int get_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)
     reg1[i] = '\0';
     if (!is_register(reg1))
     {
-        printf("error code is %d\n", PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM);
+        print_error(PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM);
         return 0;
     }
 
@@ -496,8 +495,7 @@ int get_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)
     reg2[i] = '\0';
     if (!is_register(reg2))
     {
-        printf("error code is %d\n", PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM);
-
+        print_error(PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM);
         return 0;
     }
 

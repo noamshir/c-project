@@ -7,5 +7,5 @@ shoso: .string "popo"
 choco: .mat [1][3] 1,2,3
 .extern koko
 mov #+3,aaa[r1][r3]
-popo: clr koko,
+popo: clr koko
 stop
