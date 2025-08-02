@@ -29,6 +29,7 @@ int handle_command_line(symbol_item **symbol_table, char *line, char ***array_of
         command = strdup(label);
     }
 
+    command = delete_white_spaces_start_and_end(command);
     command_index = get_command_index(command);
     if (command_index == -1)
     {

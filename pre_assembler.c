@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Headers/pre_assembler.h"
-#include "Headers/table.h"
+#include "Headers/mcro_table.h"
 #include "Headers/string.h"
 #include "Headers/error.h"
 #include "Headers/consts.h"
@@ -60,21 +60,30 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
 {
     FILE *file;
     mcro_item *current_mcro = NULL;
-    char line[LINE_SIZE];
+    char line[LINE_SIZE + 1];
     char *word, *next_word, *third_word;
-    int isMacro = 0;
+    int isMacro = 0, line_num = 0;
 
     printf("started filling mcro table\n");
 
     file = fopen(file_name, "r");
     if (file == NULL)
     {
+        fclose(file);
         print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return 0;
     }
 
     while (fgets(line, sizeof(line), file) != NULL)
     {
+        line_num++;
+
+        if (is_line_too_long(line))
+        {
+            printf("line (%d) is too long\n", line_num);
+            fclose(file);
+            safe_exit(PROCESS_ERROR_LINE_TOO_LONG);
+        }
 
         word = strtok(strdup(line), " ");
         if (strcmp(word, "mcro") == 0)

@@ -10,4 +10,5 @@ LABELI: .mat [1][3] 1,  4,    6
    mov #+3,aaa[r1][r3]
 ; FFF
 clear: clr x
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa444343
 stop

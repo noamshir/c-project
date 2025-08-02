@@ -2,6 +2,7 @@
 #define STRING_H
 
 char *delete_white_spaces_start_and_end(char *str);
+int is_line_too_long(char *line);
 char *get_file_name_without_extension(char *file_name);
 int is_empty_line(char *line);
 int is_comment_line(char *line);

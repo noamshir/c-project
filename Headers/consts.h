@@ -60,7 +60,7 @@ typedef enum ARE_TYPES
 } ARE_TYPES;
 
 #define LABEL_SIZE 31
-#define LINE_SIZE 80
+#define LINE_SIZE 81
 #define BINARY_CODE_SIZE 11
 #define REG_SIZE 3
 

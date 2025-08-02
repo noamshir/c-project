@@ -69,6 +69,13 @@ char *delete_white_spaces_start_and_end(char *str)
     return str;
 }
 
+int is_line_too_long(char *line)
+{
+    int line_length = strlen(line);
+    /* if line is not empty and last char is not \n it was too big to fit in the allocated location */
+    return line_length > 0 && line_length >= LINE_SIZE && line[line_length - 1] != '\n';
+}
+
 char *get_file_name_without_extension(char *file_name)
 {
     char *temp = strdup(file_name);

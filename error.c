@@ -10,6 +10,9 @@ void print_error(int error_code)
     case PROCESS_ERROR_MEMORY_ALLOCATION_FAILED:
         printf("memory allocation failed\n");
         break;
+    case PROCESS_ERROR_LINE_TOO_LONG:
+        printf("line too long\n");
+        break;
     case PROCESS_ERROR_FAILED_TO_OPEN_FILE:
         printf("failed to open file\n");
         break;

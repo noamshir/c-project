@@ -1,4 +1,4 @@
-#include "./table.h"
+#include "./mcro_table.h"
 
 void pre_assembler(char *file_name_without_postfix);
 int fill_mcro_table(char *file_name, mcro_item **mcro_table);
