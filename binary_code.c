@@ -114,7 +114,6 @@ int get_num_from_direct_allocation(char *str)
 {
     char *temp = strdup(str);
     temp = strtok(temp, "#");
-    delete_white_spaces(temp);
     return atoi(temp);
 }
 
@@ -164,7 +163,6 @@ char *get_register_allocation_binary_code_base_4(char *str)
     int num;
     char *temp = strdup(str);
     temp = strtok(temp, "r");
-    delete_white_spaces(temp);
     num = atoi(temp);
     switch (num)
     {

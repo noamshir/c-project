@@ -25,8 +25,23 @@ void print_error(int error_code)
     case PROCESS_ERROR_FIRST_PASS_FAILED:
         printf("first pass failed\n");
         break;
+    case PROCESS_ERROR_COMMAND_AS_LABEL:
+        printf("command as label\n");
+        break;
+    case PROCESS_ERROR_GUIDE_AS_LABEL:
+        printf("guide as label\n");
+        break;
     case PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM:
         printf("data guide invalid param\n");
+        break;
+    case PROCESS_ERROR_STRING_GUIDE_INVALID_PARAM:
+        printf("string guide invalid param\n");
+        break;
+    case PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM:
+        printf("mat guide invalid param\n");
+        break;
+    case PROCESS_ERROR_INVALID_EXTERN_LABEL_NAME:
+        printf("invalid extern label name\n");
         break;
     case PROCESS_ERROR_INVALID_COMMAND:
         printf("invalid command\n");
