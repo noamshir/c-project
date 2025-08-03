@@ -41,16 +41,39 @@ char *registers[8] = {
     "r6",
     "r7"};
 
-void delete_white_spaces(char *str)
+char *delete_white_spaces_start_and_end(char *str)
 {
-    char *temp = str;
-    do
+    if (str == NULL)
     {
-        while (*temp == ' ' || *temp == '\t' || *temp == '\n')
-        {
-            ++temp;
-        }
-    } while ((*str++ = *temp++));
+        return NULL;
+    }
+
+    char *temp = str;
+    while (*temp == ' ' || *temp == '\t' || *temp == '\n')
+    {
+        ++temp;
+    }
+    str = temp;
+    temp = str;
+    while (*temp != '\0')
+    {
+        temp++;
+    }
+    temp--;
+    while (*temp == ' ' || *temp == '\t' || *temp == '\n')
+    {
+        *temp = '\0';
+        temp--;
+    }
+
+    return str;
+}
+
+int is_line_too_long(char *line)
+{
+    int line_length = strlen(line);
+    /* if line is not empty and last char is not \n it was too big to fit in the allocated location */
+    return line_length > 0 && line_length >= LINE_SIZE && line[line_length - 1] != '\n';
 }
 
 char *get_file_name_without_extension(char *file_name)
@@ -178,6 +201,12 @@ char *get_label_name(char *word)
     word[strlen(word) - 1] = '\0';
     return word;
 }
+
+int is_guide(char *word)
+{
+    return is_data_guide(word) || is_string_guide(word) || is_mat_guide(word) || is_extern_guide(word) || is_entry_guide(word);
+}
+
 int is_word_guide(char *word, int guide_type)
 {
     if (word == NULL)
@@ -214,6 +243,54 @@ int is_extern_guide(char *word)
 int is_entry_guide(char *word)
 {
     return is_word_guide(word, GUIDE_ENTRY);
+}
+
+int is_data_guide_declaration(char *guide_declaration)
+{
+    char *num, *temp;
+
+    // check that guide_declaration is of type: "num1, num2, ...., numn"
+    printf("checking data guide declaration: %s\n", guide_declaration);
+
+    temp = strdup(guide_declaration);
+    temp = delete_white_spaces_start_and_end(temp);
+    if (temp == NULL)
+    {
+        return 0;
+    }
+
+    if (strlen(temp) == 0)
+    {
+        return 0;
+    }
+
+    if (temp[0] == ',' || temp[strlen(temp) - 1] == ',')
+    {
+        return 0;
+    }
+
+    num = strtok(strdup(temp), ",");
+    num = delete_white_spaces_start_and_end(num);
+    if (num == NULL || !is_integer(num))
+    {
+        return 0;
+    }
+
+    while (1)
+    {
+        num = strtok(NULL, ",");
+        num = delete_white_spaces_start_and_end(num);
+        if (num == NULL)
+        {
+            return 1;
+        }
+
+        if (!is_integer(num))
+        {
+            print_error(PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM);
+            return 0;
+        }
+    }
 }
 
 int get_command_index(char *word)
@@ -254,25 +331,25 @@ int is_register(char *word)
     return 0;
 }
 
-int is_mat_declaration(char *word)
+int is_mat_declaration(char *guide_declaration)
 {
-    // check that next word is [num1][num2]
+    // check that next word is [num1][num2] and optional (num1, num2...)
     char *temp;
-    if (word == NULL)
+    temp = strdup(guide_declaration);
+    temp = strtok(temp, " ");
+
+    if (temp == NULL || strlen(temp) == 0)
     {
         return 0;
     }
-    if (strlen(word) == 0)
-    {
-        return 0;
-    }
-    if (word[0] != '[' || word[strlen(word) - 1] != ']')
+
+    if (temp[0] != '[' || temp[strlen(temp) - 1] != ']')
     {
         return 0;
     }
 
     // loop the first [num] and check if valid
-    for (temp = word + 1; *temp != ']'; temp++)
+    for (temp = temp + 1; *temp != ']'; temp++)
     {
         if (!is_char_digit(*temp))
         {
@@ -294,6 +371,12 @@ int is_mat_declaration(char *word)
         {
             return 0;
         }
+    }
+
+    temp = strtok(NULL, "\n");
+    if (temp != NULL && strlen(temp) > 0)
+    {
+        return is_data_guide_declaration(temp);
     }
 
     return 1;
@@ -365,7 +448,7 @@ int get_allocation_type(char *word)
         return ALLOCATION_DIRECT;
     }
 
-    return -999;
+    return ALLOCATION_INVALID;
 }
 
 int is_immediate_allocation(char *word)
@@ -410,8 +493,17 @@ int is_mat_allocation(char *word)
         return 0;
     }
 
-    reg1 = malloc(3);
-    reg2 = malloc(3);
+    reg1 = malloc(REG_SIZE);
+    if (reg1 == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+
+    reg2 = malloc(REG_SIZE);
+    if (reg2 == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
 
     temp = strchr(word, '[');
     // no [ sign? cant be a mat def...
@@ -428,8 +520,7 @@ int is_mat_allocation(char *word)
         label = realloc(label, i);
         if (label == NULL)
         {
-            printf("error code is %d\n", PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-            return 0;
+            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
         label[i - 1] = *temp;
         temp++;
@@ -442,8 +533,8 @@ int is_mat_allocation(char *word)
         return 0;
     }
     free(label);
-    mat_def = strdup(temp);
 
+    mat_def = strdup(temp);
     return get_regs_from_mat_allocation(mat_def, reg1, reg2);
 }
 
@@ -471,7 +562,7 @@ int get_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)
     reg1[i] = '\0';
     if (!is_register(reg1))
     {
-        printf("error code is %d\n", PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM);
+        print_error(PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM);
         return 0;
     }
 
@@ -496,8 +587,7 @@ int get_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)
     reg2[i] = '\0';
     if (!is_register(reg2))
     {
-        printf("error code is %d\n", PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM);
-
+        print_error(PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM);
         return 0;
     }
 

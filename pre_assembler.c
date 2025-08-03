@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Headers/pre_assembler.h"
-#include "Headers/table.h"
+#include "Headers/mcro_table.h"
 #include "Headers/string.h"
 #include "Headers/error.h"
 #include "Headers/consts.h"
@@ -14,22 +14,24 @@ void pre_assembler(char *file_name_without_postfix)
     char *temp_file_name, *file_name, str[LINE_SIZE];
     mcro_item *mcro_table = NULL;
 
+    printf("pre assembler started\n");
+
     file_name = malloc(strlen(file_name_without_postfix) + 4);
     if (file_name == NULL)
     {
         exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
     }
+
     strcpy(file_name, file_name_without_postfix);
     strcat(file_name, ".as");
 
     valid = fill_mcro_table(file_name, &mcro_table);
-
     if (!valid)
     {
         exit(1);
     }
-    temp_file_name = remove_mcro_defines(file_name);
 
+    temp_file_name = remove_mcro_defines(file_name);
     if (temp_file_name == NULL)
     {
         exit(1);
@@ -46,31 +48,44 @@ void pre_assembler(char *file_name_without_postfix)
 
     while (fgets(str, LINE_SIZE, fp) != NULL)
     {
-        printf("line: %s \n", str);
+        printf("line: %s", str);
     }
+
+    fclose(fp);
+    free(file_name);
+    printf("pre assembler finished\n");
 }
 
 int fill_mcro_table(char *file_name, mcro_item **mcro_table)
 {
     FILE *file;
     mcro_item *current_mcro = NULL;
-    char line[LINE_SIZE];
+    char line[LINE_SIZE + 1];
     char *word, *next_word, *third_word;
-    int isMacro = 0;
+    int isMacro = 0, line_num = 0;
+
+    printf("started filling mcro table\n");
 
     file = fopen(file_name, "r");
     if (file == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_FAILED_TO_OPEN_FILE);
+        fclose(file);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return 0;
     }
 
     while (fgets(line, sizeof(line), file) != NULL)
     {
+        line_num++;
+
+        if (is_line_too_long(line))
+        {
+            printf("line (%d) is too long\n", line_num);
+            fclose(file);
+            safe_exit(PROCESS_ERROR_LINE_TOO_LONG);
+        }
 
         word = strtok(strdup(line), " ");
-        delete_white_spaces(word);
-
         if (strcmp(word, "mcro") == 0)
         {
 
@@ -82,11 +97,10 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
                 return 0;
             }
 
-            delete_white_spaces(next_word);
-            if (!isMcroNameValid(next_word))
+            if (!is_mcro_name_valid(next_word))
             {
                 fclose(file);
-                printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_NAME);
+                print_error(PROCESS_ERROR_INVALID_MACRO_NAME);
                 return 0;
             }
 
@@ -94,7 +108,7 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
             if (third_word != NULL)
             {
                 fclose(file);
-                printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+                print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
                 return 0;
             }
 
@@ -108,7 +122,7 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
             if (next_word != NULL)
             {
                 fclose(file);
-                printf("error code is %d\n", PROCESS_ERROR_INVALID_MACRO_END_DECLARATION);
+                print_error(PROCESS_ERROR_INVALID_MACRO_END_DECLARATION);
                 return 0;
             }
             isMacro = 0;
@@ -123,10 +137,12 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
     }
 
     fclose(file);
+
+    printf("finished filling mcro table\n");
     return 1;
 }
 
-int isMcroNameValid(char *name)
+int is_mcro_name_valid(char *name)
 {
     int i;
     char *commands[] = {"mov", "cmp", "add", "sub", "lea", "clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", "rts", "stop"};
@@ -169,10 +185,12 @@ char *remove_mcro_defines(char file_name[])
     char line[LINE_SIZE], line_copy[LINE_SIZE];
     FILE *original_file_pointer, *temp_file_pointer;
 
+    printf("started removing mcro defines\n");
+
     original_file_pointer = fopen(file_name, "r");
     if (original_file_pointer == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_FAILED_TO_OPEN_FILE);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return NULL;
     }
 
@@ -181,7 +199,7 @@ char *remove_mcro_defines(char file_name[])
     if (temp_file_pointer == NULL)
     {
         fclose(original_file_pointer);
-        printf("error code is %d\n", PROCESS_ERROR_FAILED_TO_OPEN_FILE);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return NULL;
     }
 
@@ -189,6 +207,13 @@ char *remove_mcro_defines(char file_name[])
     {
         strcpy(line_copy, line);
         token = strtok(line, " \n");
+
+        if (token == NULL)
+        {
+            /* empty lines */
+            fprintf(temp_file_pointer, "%s", line_copy);
+            continue;
+        }
 
         if (strcmp(token, "mcroend") == 0)
         {
@@ -198,12 +223,6 @@ char *remove_mcro_defines(char file_name[])
 
         if (found_mcro == 1)
         {
-            continue;
-        }
-
-        if (token == NULL)
-        {
-            /* empty lines */
             continue;
         }
 
@@ -222,6 +241,7 @@ char *remove_mcro_defines(char file_name[])
     fclose(original_file_pointer);
     fclose(temp_file_pointer);
 
+    printf("finished removing mcro defines\n");
     return temp_file;
 }
 
@@ -232,17 +252,18 @@ char *replace_mcro_defines(mcro_item **mcro_table, char file_name[])
     char line[LINE_SIZE], line_copy[LINE_SIZE];
     FILE *original_file_pointer, *temp_file_pointer;
 
+    printf("started replacing mcro defines\n");
     original_file_pointer = fopen(file_name, "r");
     if (original_file_pointer == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_FAILED_TO_OPEN_FILE);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return NULL;
     }
 
     temp_file_pointer = fopen("temp2.as", "w");
     if (temp_file_pointer == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_FAILED_TO_OPEN_FILE);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return NULL;
     }
 
@@ -250,8 +271,13 @@ char *replace_mcro_defines(mcro_item **mcro_table, char file_name[])
     {
         strcpy(line_copy, line);
         token = strtok(line, " \n");
+        token = delete_white_spaces_start_and_end(token);
 
-        delete_white_spaces(token);
+        if (token == NULL)
+        {
+            fprintf(temp_file_pointer, "%s", line_copy);
+            continue;
+        }
 
         table_item = find_by_name(*mcro_table, token);
         if (table_item == NULL)
@@ -270,5 +296,6 @@ char *replace_mcro_defines(mcro_item **mcro_table, char file_name[])
     remove(file_name);
     rename("temp2.as", file_name);
 
+    printf("finished replacing mcro defines\n");
     return file_name;
 }
