@@ -77,12 +77,12 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
     while (fgets(line, sizeof(line), file) != NULL)
     {
         line_num++;
-
         if (is_line_too_long(line))
         {
             printf("line (%d) is too long\n", line_num);
             fclose(file);
-            safe_exit(PROCESS_ERROR_LINE_TOO_LONG);
+            print_error(PROCESS_ERROR_LINE_TOO_LONG);
+            return 0;
         }
 
         word = strtok(strdup(line), " ");
@@ -91,12 +91,7 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
 
             isMacro = 1;
             next_word = strtok(NULL, " ");
-            if (next_word == NULL)
-            {
-                fclose(file);
-                return 0;
-            }
-
+            next_word = delete_white_spaces_start_and_end(next_word);
             if (!is_mcro_name_valid(next_word))
             {
                 fclose(file);
@@ -112,11 +107,11 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
                 return 0;
             }
 
-            current_mcro = add_item(mcro_table, strdup(next_word), NULL);
+            current_mcro = add_mcro_item(mcro_table, strdup(next_word), NULL);
 
             continue;
         }
-        else if (strcmp(word, "mcroend") == 0)
+        else if (strcmp(delete_white_spaces_start_and_end(word), "mcroend") == 0)
         {
             next_word = strtok(NULL, " ");
             if (next_word != NULL)
@@ -131,54 +126,17 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
         }
         else if (isMacro == 1)
         {
-            append_item_value(current_mcro, line);
+            append_string_to_mcro_item_value(current_mcro, line);
             continue;
         }
     }
 
     fclose(file);
-
     printf("finished filling mcro table\n");
     return 1;
 }
 
-int is_mcro_name_valid(char *name)
-{
-    int i;
-    char *commands[] = {"mov", "cmp", "add", "sub", "lea", "clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", "rts", "stop"};
-    char *instructions[] = {".data", ".string", ".mat", ".entry", ".extern"};
-
-    if (name == NULL)
-    {
-        return 0;
-    }
-    if (strlen(name) == 0)
-    {
-        return 0;
-    }
-
-    /* check if name is in commands */
-    for (i = 0; i < (sizeof(commands) / sizeof(commands[0])); i++)
-    {
-
-        if (strcmp(name, commands[i]) == 0)
-        {
-            return 0;
-        }
-    }
-
-    /* check if name is in instructions*/
-    for (i = 0; i < (sizeof(instructions) / sizeof(instructions[0])); i++)
-    {
-        if (strcmp(name, instructions[i]) == 0)
-        {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-char *remove_mcro_defines(char file_name[])
+char *remove_mcro_defines(char *file_name)
 {
     int found_mcro = 0;
     char *token, *temp_file;
@@ -245,7 +203,7 @@ char *remove_mcro_defines(char file_name[])
     return temp_file;
 }
 
-char *replace_mcro_defines(mcro_item **mcro_table, char file_name[])
+char *replace_mcro_defines(mcro_item **mcro_table, char *file_name)
 {
     char *token, *content;
     mcro_item *table_item;
@@ -279,7 +237,7 @@ char *replace_mcro_defines(mcro_item **mcro_table, char file_name[])
             continue;
         }
 
-        table_item = find_by_name(*mcro_table, token);
+        table_item = find_mcro_item_by_name(*mcro_table, token);
         if (table_item == NULL)
         {
             fprintf(temp_file_pointer, "%s", line_copy);
@@ -287,6 +245,7 @@ char *replace_mcro_defines(mcro_item **mcro_table, char file_name[])
         }
         /* replace line with the content */
         content = table_item->value;
+        printf("replacing %s with %s\n", token, content);
         fprintf(temp_file_pointer, "%s", content);
     }
 

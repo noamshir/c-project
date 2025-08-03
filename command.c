@@ -18,7 +18,7 @@ int handle_command_line(symbol_item **symbol_table, char *line, char ***array_of
     if (is_label(label))
     {
         label_name = get_label_name(label);
-        if (!add_label_to_symbol_table(symbol_table, label_name, "code", *IC))
+        if (!add_symbol_item(symbol_table, label_name, "code", *IC))
         {
             return 0;
         }

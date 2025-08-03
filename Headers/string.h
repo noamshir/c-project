@@ -6,6 +6,7 @@ int is_line_too_long(char *line);
 char *get_file_name_without_extension(char *file_name);
 int is_empty_line(char *line);
 int is_comment_line(char *line);
+int is_mcro_name_valid(char *name);
 int is_valid_label_name(char *str);
 int is_char_alphabetical_or_digit(char c);
 int is_char_alphabetical(char c);

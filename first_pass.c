@@ -89,6 +89,11 @@ void first_pass(char *file_name_without_postfix)
             printf("Error in line %d\n", line_num);
             has_errors = 1;
         }
+
+        if ((IC + DC) > MAX_MEMORY_SIZE)
+        {
+            safe_exit(PROCESS_ERROR_MAX_MEMORY_SIZE_EXCEEDED);
+        }
     }
 
     if (has_errors)
@@ -110,7 +115,7 @@ void first_pass(char *file_name_without_postfix)
         printf("command: %s\n", array_of_commands[i]);
     }
 
-    update_data_labels(symbol_table, IC);
+    update_data_symbol_items_address(symbol_table, IC);
 
     free(file_name);
     free(array_of_commands);

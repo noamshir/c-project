@@ -19,7 +19,7 @@ symbol_item *create_symbol_item(char *name, char *type, int address)
     return item;
 }
 
-int add_label_to_symbol_table(symbol_item **head, char *name, char *type, int address)
+int add_symbol_item(symbol_item **head, char *name, char *type, int address)
 {
     symbol_item *item, *temp;
 
@@ -86,7 +86,7 @@ symbol_item *find_symbol_item_by_name(symbol_item *head, char *name)
     return find_symbol_item_by_name(head->next, name);
 }
 
-void update_data_labels(symbol_item *head, int ICF)
+void update_data_symbol_items_address(symbol_item *head, int ICF)
 {
     if (head == NULL)
     {
@@ -99,5 +99,5 @@ void update_data_labels(symbol_item *head, int ICF)
         head->address = head->address + ICF;
     }
 
-    update_data_labels(head->next, ICF);
+    update_data_symbol_items_address(head->next, ICF);
 }

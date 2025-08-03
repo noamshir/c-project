@@ -13,6 +13,9 @@ void print_error(int error_code)
     case PROCESS_ERROR_LINE_TOO_LONG:
         printf("line too long\n");
         break;
+    case PROCESS_ERROR_MAX_MEMORY_SIZE_EXCEEDED:
+        printf("max memory size exceeded\n");
+        break;
     case PROCESS_ERROR_FAILED_TO_OPEN_FILE:
         printf("failed to open file\n");
         break;

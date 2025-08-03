@@ -17,7 +17,7 @@ int handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_d
     if (is_label(opening_word))
     {
         label_name = get_label_name(opening_word);
-        if (!add_label_to_symbol_table(symbol_table, label_name, "data", *DC))
+        if (!add_symbol_item(symbol_table, label_name, "data", *DC))
         {
             return 0;
         }
@@ -275,5 +275,5 @@ int handle_extern(symbol_item **symbol_table, char *line)
         return 0;
     }
 
-    return add_label_to_symbol_table(symbol_table, next_word, "external", 0);
+    return add_symbol_item(symbol_table, next_word, "external", 0);
 }
