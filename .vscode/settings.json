@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "error.h": "c"
+        "files_extractor.h": "c",
+        "second_pass.h": "c"
     }
 }

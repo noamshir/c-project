@@ -8,7 +8,7 @@ void generateAmFile(char *name, char **expandedLines, int lineCount)
 {
     int i; /*parameter for loops*/
     FILE *amFile;
-    char fileName[300];
+    char fileName[256];
 
     strcpy(fileName, name);  /*creating am file*/
     strcat(fileName, ".am"); /*adding the .am in the end of the name*/
@@ -45,7 +45,7 @@ void convertToSpecialBase4(int value, char *output) /*converting the input to a 
 void generateObFile(char *name, int *code, int codeLength, int *data, int dataLength)
 {
     FILE *obFile;
-    char fileName[300];
+    char fileName[256];
     int i; /*parameter for loops*/
     char encoded[6];
 
@@ -82,7 +82,7 @@ void generateObFile(char *name, int *code, int codeLength, int *data, int dataLe
 void generateEntryFile(char *name, char **entryLabels, int *addresses, int entryCount)
 {
     FILE *entFile;
-    char fileName[300];
+    char fileName[256];
     int i;
 
     /* to not create file if there is not lable*/
@@ -117,7 +117,7 @@ void generateEntryFile(char *name, char **entryLabels, int *addresses, int entry
 void generateExternFile(char *name, char **externLabels, int *addresses, int externCount)
 {
     FILE *extFile;
-    char fileName[300];
+    char fileName[256];
     int i;
 
     /* to not create file if there is not lable*/
