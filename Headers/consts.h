@@ -63,5 +63,6 @@ typedef enum ARE_TYPES
 #define LINE_SIZE 81
 #define BINARY_CODE_SIZE 11
 #define REG_SIZE 3
+#define MEMORY_START_ADDRESS 100
 
 #endif
