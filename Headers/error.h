@@ -3,6 +3,7 @@ typedef enum PROCESS_ERROR_CODES
     /* internal */
     PROCESS_ERROR_MEMORY_ALLOCATION_FAILED,
     PROCESS_ERROR_LINE_TOO_LONG,
+    PROCESS_ERROR_MAX_MEMORY_SIZE_EXCEEDED,
     /* mcro */
     PROCESS_ERROR_INVALID_MACRO_NAME,
     PROCESS_ERROR_INVALID_MACRO_DECLARATION,
@@ -26,5 +27,19 @@ typedef enum PROCESS_ERROR_CODES
     PROCESS_ERROR_SYMBOL_ALREADY_EXISTS
 } PROCESS_ERROR_CODES;
 
+/**
+ * @brief Print error.
+ *
+ * Print a proper according to the error code sent as param.
+ *
+ * @param error_code an integer representing the error code
+ */
 void print_error(int error_code);
+/**
+ * @brief Print error and exit.
+ *
+ * Print a proper according to the error code sent as param and exit the program.
+ *
+ * @param error_code an integer representing the error code
+ */
 void safe_exit(int error_code);

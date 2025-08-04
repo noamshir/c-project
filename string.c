@@ -122,6 +122,25 @@ int is_comment_line(char *line)
     return 0;
 }
 
+int is_mcro_name_valid(char *name)
+{
+    if (name == NULL)
+    {
+        return 0;
+    }
+    if (strlen(name) == 0)
+    {
+        return 0;
+    }
+
+    if (is_command(name) || is_guide(name))
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
 int is_valid_label_name(char *str)
 {
     if (str == NULL)
@@ -384,7 +403,7 @@ int is_mat_declaration(char *guide_declaration)
 
 int set_rows_and_cols_from_mat_declaration(char *word, int *rows, int *cols)
 {
-    char *temp, reg[2];
+    char *temp, *num_str;
     int i = 0;
 
     if (!is_mat_declaration(word))
@@ -395,29 +414,62 @@ int set_rows_and_cols_from_mat_declaration(char *word, int *rows, int *cols)
     // loop the first [num] and check if valid
     for (temp = word + 1; *temp != ']'; temp++)
     {
-        if (i > 1)
+        if (i > 3)
         {
             return 0;
         }
-        reg[i] = *temp;
+        else if (i == 0)
+        {
+            num_str = malloc(i + 1);
+            if (num_str == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+        }
+        else
+        {
+            num_str = realloc(num_str, i + 1);
+            if (num_str == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+        }
+        num_str[i] = *temp;
         i++;
     }
-    *rows = atoi(reg);
+    *rows = atoi(num_str);
 
     i = 0;
     temp = temp + 2;
     // loop the second [num] and check if valid
     for (; *temp != ']'; temp++)
     {
-        if (i > 1)
+        if (i > 3)
         {
             return 0;
         }
-        reg[i] = *temp;
+        else if (i == 0)
+        {
+            num_str = malloc(i + 1);
+            if (num_str == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+        }
+        else
+        {
+            num_str = realloc(num_str, i + 1);
+            if (num_str == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+        }
+        num_str[i] = *temp;
         i++;
     }
-    *cols = atoi(reg);
+    *cols = atoi(num_str);
 
+    free(num_str);
     return 1;
 }
 
