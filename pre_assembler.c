@@ -88,7 +88,6 @@ int fill_mcro_table(char *file_name, mcro_item **mcro_table)
         word = strtok(strdup(line), " ");
         if (strcmp(word, "mcro") == 0)
         {
-
             isMacro = 1;
             next_word = strtok(NULL, " ");
             next_word = delete_white_spaces_start_and_end(next_word);

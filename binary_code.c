@@ -6,22 +6,32 @@
 #include "Headers/consts.h"
 #include "Headers/binary_code.h"
 
-void add_command_line_binary_code(char *binary_code, char *str, int command_index, int src_type, int dst_type)
+char *build_command_line_binary_code(int command_index, int src_type, int dst_type)
 {
-    char *command_code, *ARE_code, *src_type_code, *dst_type_code;
-    command_code = get_line_command_binary_code(command_index);
-    ARE_code = get_ARE_binary_code(ABSOLUTE_CODE);
+    char *binary_code, *command_code, *ARE_code, *src_type_code, *dst_type_code;
+
+    /* get the binary code separated parts */
+    command_code = get_command_binary_code(command_index);
     src_type_code = get_allocation_type_binary_code(src_type);
     dst_type_code = get_allocation_type_binary_code(dst_type);
-    // copy and concat all to binary_code
+    ARE_code = get_ARE_binary_code(ABSOLUTE_CODE);
+
+    binary_code = malloc(BINARY_CODE_SIZE);
+    if (binary_code == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+
+    /* concat all the parts to a command line binary code */
     strcpy(binary_code, command_code);
     strcat(binary_code, src_type_code);
     strcat(binary_code, dst_type_code);
     strcat(binary_code, ARE_code);
-    printf("binary code: %s\n", binary_code);
+
+    return binary_code;
 }
 
-char *get_line_command_binary_code(int command_index)
+char *get_command_binary_code(int command_index)
 {
     switch (command_index)
     {
@@ -90,9 +100,9 @@ char *get_allocation_type_binary_code(int allocation_type)
         return "10";
     case ALLOCATION_REGISTER:
         return "11";
+    default:
+        return NULL;
     }
-
-    return NULL;
 }
 
 char *get_direct_allocation_binary_code(char *str)

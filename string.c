@@ -69,6 +69,52 @@ char *delete_white_spaces_start_and_end(char *str)
     return str;
 }
 
+int is_integer(char *str)
+{
+    if (str == NULL)
+    {
+        return 0;
+    }
+
+    if (strlen(str) == 0)
+    {
+        return 0;
+    }
+
+    int i = 0;
+    // check for signs
+    if (str[0] == '+' || str[0] == '-')
+    {
+        i = 1;
+    }
+
+    for (; str[i] != '\0'; i++)
+    {
+        if (!is_char_digit(str[i]))
+        {
+            // one char is not a digit, string isnt a number
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+int is_char_alphabetical_or_digit(char c)
+{
+    return is_char_alphabetical(c) || is_char_digit(c);
+}
+
+int is_char_alphabetical(char c)
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+
+int is_char_digit(char c)
+{
+    return c >= '0' && c <= '9';
+}
+
 int is_line_too_long(char *line)
 {
     int line_length = strlen(line);
@@ -165,22 +211,7 @@ int is_valid_label_name(char *str)
     return 1;
 }
 
-int is_char_alphabetical_or_digit(char c)
-{
-    return is_char_alphabetical(c) || is_char_digit(c);
-}
-
-int is_char_alphabetical(char c)
-{
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-}
-
-int is_char_digit(char c)
-{
-    return c >= '0' && c <= '9';
-}
-
-int is_label(char *word)
+int is_label_declaration(char *word)
 {
     if (word == NULL)
     {
@@ -211,7 +242,7 @@ int is_label(char *word)
 
 char *get_label_name(char *word)
 {
-    if (!is_label(word))
+    if (!is_label_declaration(word))
     {
         return NULL;
     }
@@ -312,44 +343,6 @@ int is_data_guide_declaration(char *guide_declaration)
     }
 }
 
-int get_command_index(char *word)
-{
-    int i;
-
-    if (word == NULL)
-    {
-        return -1;
-    }
-
-    for (i = 0; i < 16; i++)
-    {
-        if (strcmp(word, commands[i]) == 0)
-        {
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-int is_command(char *word)
-{
-    return get_command_index(word) != -1;
-}
-
-int is_register(char *word)
-{
-    // check if word is register
-    for (int i = 0; i < 8; i++)
-    {
-        if (strcmp(word, registers[i]) == 0)
-        {
-            return 1;
-        }
-    }
-    return 0;
-}
-
 int is_mat_declaration(char *guide_declaration)
 {
     // check that next word is [num1][num2] and optional (num1, num2...)
@@ -401,76 +394,42 @@ int is_mat_declaration(char *guide_declaration)
     return 1;
 }
 
-int set_rows_and_cols_from_mat_declaration(char *word, int *rows, int *cols)
+int get_command_index(char *word)
 {
-    char *temp, *num_str;
-    int i = 0;
+    int i;
 
-    if (!is_mat_declaration(word))
+    if (word == NULL)
     {
-        return 0;
+        return -1;
     }
 
-    // loop the first [num] and check if valid
-    for (temp = word + 1; *temp != ']'; temp++)
+    for (i = 0; i < 16; i++)
     {
-        if (i > 3)
+        if (strcmp(word, commands[i]) == 0)
         {
-            return 0;
+            return i;
         }
-        else if (i == 0)
-        {
-            num_str = malloc(i + 1);
-            if (num_str == NULL)
-            {
-                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-            }
-        }
-        else
-        {
-            num_str = realloc(num_str, i + 1);
-            if (num_str == NULL)
-            {
-                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-            }
-        }
-        num_str[i] = *temp;
-        i++;
     }
-    *rows = atoi(num_str);
 
-    i = 0;
-    temp = temp + 2;
-    // loop the second [num] and check if valid
-    for (; *temp != ']'; temp++)
+    return -1;
+}
+
+int is_command(char *word)
+{
+    return get_command_index(word) != -1;
+}
+
+int is_register(char *word)
+{
+    // check if word is register
+    for (int i = 0; i < 8; i++)
     {
-        if (i > 3)
+        if (strcmp(word, registers[i]) == 0)
         {
-            return 0;
+            return 1;
         }
-        else if (i == 0)
-        {
-            num_str = malloc(i + 1);
-            if (num_str == NULL)
-            {
-                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-            }
-        }
-        else
-        {
-            num_str = realloc(num_str, i + 1);
-            if (num_str == NULL)
-            {
-                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-            }
-        }
-        num_str[i] = *temp;
-        i++;
     }
-    *cols = atoi(num_str);
-
-    free(num_str);
-    return 1;
+    return 0;
 }
 
 int get_allocation_type(char *word)

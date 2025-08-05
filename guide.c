@@ -14,7 +14,7 @@ int handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_d
     char *guide, *opening_word, *label_name, *guide_declaration;
 
     opening_word = strtok(strdup(line), " ");
-    if (is_label(opening_word))
+    if (is_label_declaration(opening_word))
     {
         label_name = get_label_name(opening_word);
         if (!add_symbol_item(symbol_table, label_name, "data", *DC))
@@ -238,13 +238,85 @@ int handle_mat_guide(char *guide_declaration, char ***array_of_data, int *DC)
     return 1;
 }
 
-int handle_extern(symbol_item **symbol_table, char *line)
+int set_rows_and_cols_from_mat_declaration(char *guide_declaration, int *rows, int *cols)
+{
+    char *temp, *num_str;
+    int i = 0;
+
+    if (!is_mat_declaration(guide_declaration))
+    {
+        return 0;
+    }
+
+    // loop the first [num] and check if valid
+    for (temp = guide_declaration + 1; *temp != ']'; temp++)
+    {
+        if (i > 3)
+        {
+            return 0;
+        }
+        else if (i == 0)
+        {
+            num_str = malloc(i + 1);
+            if (num_str == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+        }
+        else
+        {
+            num_str = realloc(num_str, i + 1);
+            if (num_str == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+        }
+        num_str[i] = *temp;
+        i++;
+    }
+    *rows = atoi(num_str);
+
+    i = 0;
+    temp = temp + 2;
+    // loop the second [num] and check if valid
+    for (; *temp != ']'; temp++)
+    {
+        if (i > 3)
+        {
+            return 0;
+        }
+        else if (i == 0)
+        {
+            num_str = malloc(i + 1);
+            if (num_str == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+        }
+        else
+        {
+            num_str = realloc(num_str, i + 1);
+            if (num_str == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+        }
+        num_str[i] = *temp;
+        i++;
+    }
+    *cols = atoi(num_str);
+
+    free(num_str);
+    return 1;
+}
+
+int handle_extern_guide_line(symbol_item **symbol_table, char *line)
 {
     // check that line is of type: "label: .extern operand"
     char *word, *next_word;
 
     word = strtok(strdup(line), " ");
-    if (is_label(word))
+    if (is_label_declaration(word))
     {
         word = strtok(NULL, " ");
         if (!is_extern_guide(word))

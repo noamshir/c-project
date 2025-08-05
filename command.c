@@ -15,7 +15,7 @@ int handle_command_line(symbol_item **symbol_table, char *line, char ***array_of
     int command_index;
 
     label = strtok(strdup(line), " ");
-    if (is_label(label))
+    if (is_label_declaration(label))
     {
         label_name = get_label_name(label);
         if (!add_symbol_item(symbol_table, label_name, "code", *IC))
@@ -79,7 +79,7 @@ int handle_no_op_line(int command_index, char *str, char ***array_of_commands, i
         return 0;
     }
 
-    return handle_op_line(command_index, str, NULL, NULL, array_of_commands, IC);
+    return handle_op_line(command_index, NULL, NULL, array_of_commands, IC);
 }
 
 int handle_one_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
@@ -96,7 +96,7 @@ int handle_one_op_line(int command_index, char *str, char ***array_of_commands, 
         return 0;
     }
 
-    return handle_op_line(command_index, str, NULL, dst, array_of_commands, IC);
+    return handle_op_line(command_index, NULL, dst, array_of_commands, IC);
 }
 
 int handle_two_op_line(int command_index, char *str, char ***array_of_commands, int *IC)
@@ -120,10 +120,10 @@ int handle_two_op_line(int command_index, char *str, char ***array_of_commands, 
     }
 
     printf("src: %s, dst: %s\n", src, dst);
-    return handle_op_line(command_index, str, src, dst, array_of_commands, IC);
+    return handle_op_line(command_index, src, dst, array_of_commands, IC);
 }
 
-int handle_op_line(int command_index, char *str, char *src, char *dst, char ***array_of_commands, int *IC)
+int handle_op_line(int command_index, char *src, char *dst, char ***array_of_commands, int *IC)
 {
     char *line_binary_code;
     int src_type, dst_type, src_space, dst_space, L = 0;
@@ -152,13 +152,7 @@ int handle_op_line(int command_index, char *str, char *src, char *dst, char ***a
     L = calculate_space(src_type, dst_type, &src_space, &dst_space);
     printf("Space size for line: %d\n", L);
 
-    line_binary_code = malloc(BINARY_CODE_SIZE);
-    if (line_binary_code == NULL)
-    {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    add_command_line_binary_code(line_binary_code, str, command_index, src_type, dst_type);
+    line_binary_code = build_command_line_binary_code(command_index, src_type, dst_type);
     printf("line binary code: %s\n", line_binary_code);
 
     *array_of_commands = realloc(*array_of_commands, (*IC + L) * sizeof(char *));

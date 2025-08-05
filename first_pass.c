@@ -56,7 +56,7 @@ void first_pass(char *file_name_without_postfix)
         }
 
         word = strtok(strdup(line), " ");
-        if (is_label(word))
+        if (is_label_declaration(word))
         {
             main_op = strtok(NULL, " ");
         }
@@ -71,7 +71,7 @@ void first_pass(char *file_name_without_postfix)
         }
         else if (is_extern_guide(main_op))
         {
-            is_line_valid = handle_extern(&symbol_table, line);
+            is_line_valid = handle_extern_guide_line(&symbol_table, line);
         }
         else if (is_entry_guide(main_op))
         {
