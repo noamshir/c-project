@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "error.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "first_pass.h": "c"
     }
 }

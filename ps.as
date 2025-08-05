@@ -7,5 +7,5 @@ my_mcro
 .extern LENGTH
    mov   #+3,  aaa[r1][r3]
 ; FFF
-clear:   clr   x
+   clear:   clr   x
 stop

@@ -136,6 +136,11 @@ char *get_file_name_without_extension(char *file_name)
 
 int is_empty_line(char *line)
 {
+    if (line == NULL)
+    {
+        return 1;
+    }
+
     // loop the string
     while (*line != '\0')
     {
