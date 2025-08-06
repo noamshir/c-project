@@ -152,8 +152,7 @@ void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, cha
     
 }
 
-int encode_second_pass_operands(char *op, int type, int space, int *IC, char ***array_of_commands,
-                                symbol_item *symbol_table, char ***externLabels, int **externAddresses, int *externCount)
+int encode_second_pass_operands(char *op, int type, int space, int *IC, char ***array_of_commands,symbol_item *symbol_table, char ***externLabels, int **externAddresses, int *externCount)
 {
     symbol_item *sym;
 
@@ -166,13 +165,13 @@ int encode_second_pass_operands(char *op, int type, int space, int *IC, char ***
     // case of matrix
     if (type == ALLOCATION_MAT)
     {
-        sym = find_symbol(symbol_table, strtok(strdup(op), "["));
-        if (sym == NULL)
+        sym = find_symbol(symbol_table, strtok(strdup(op), "[")); //start of matrix
+        if (sym == NULL) //if symbil is not in the symbol table
         {
             return 0;
         }
 
-        (*array_of_commands)[*IC] = convert_num_to_10_bits(sym->address);
+        (*array_of_commands)[*IC] = convert_num_to_10_bits(sym->address); //need to change to 8 bits convert //encode mat address to 10 bits
 
         if (strcmp(sym->type, "external") == 0)
         {
@@ -196,7 +195,7 @@ int encode_second_pass_operands(char *op, int type, int space, int *IC, char ***
             return 0; 
         }
 
-        (*array_of_commands)[*IC] = convert_num_to_10_bits(sym->address);
+        (*array_of_commands)[*IC] = convert_num_to_10_bits(sym->address); //encode to 10 bits
 
         if (strcmp(sym->type, "external") == 0)
         {

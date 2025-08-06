@@ -42,7 +42,7 @@ void convertToSpecialBase4(int value, char *output) /*converting the input to a 
     output[5] = '\0';
 }
 
-void generateObFile(char *name, int *code, int codeLength, int *data, int dataLength)
+void generateObFile(char *name, char ***code, int codeLength, char ***data, int dataLength)
 {
     FILE *obFile;
     char fileName[256];
