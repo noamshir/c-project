@@ -11,10 +11,10 @@
 #include "Headers/guide.h"
 #include "Headers/command.h"
 
-void first_pass(char *file_name_without_postfix)
+int first_pass(char *file_name_without_postfix)
 {
     int IC = 0, DC = 0, line_num = 0, i = 0, is_line_valid = 0, has_errors = 0;
-    char *file_name, line[LINE_SIZE], *word, *main_op, **array_of_commands = NULL, **array_of_data = NULL;
+    char *file_name, line[LINE_SIZE], *first_word_in_line, *main_op, **array_of_commands = NULL, **array_of_data = NULL;
     FILE *file;
     symbol_item *symbol_table = NULL;
 
@@ -36,7 +36,7 @@ void first_pass(char *file_name_without_postfix)
     if (file == NULL)
     {
         print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
-        return;
+        return 0;
     }
 
     while (fgets(line, sizeof(line), file) != NULL)
@@ -55,14 +55,16 @@ void first_pass(char *file_name_without_postfix)
             continue;
         }
 
-        word = strtok(strdup(line), " ");
-        if (is_label(word))
+        first_word_in_line = strtok(strdup(line), " ");
+        if (is_label_declaration(first_word_in_line))
         {
+            /* if the first word is label than the second one is the command or the guide */
             main_op = strtok(NULL, " ");
         }
         else
         {
-            main_op = strdup(word);
+            /* if the first word isn't a label it must be the command or the guide */
+            main_op = strdup(first_word_in_line);
         }
 
         if (is_data_guide(main_op) || is_string_guide(main_op) || is_mat_guide(main_op))
@@ -71,7 +73,7 @@ void first_pass(char *file_name_without_postfix)
         }
         else if (is_extern_guide(main_op))
         {
-            is_line_valid = handle_extern(&symbol_table, line);
+            is_line_valid = handle_extern_guide_line(&symbol_table, line);
         }
         else if (is_entry_guide(main_op))
         {
@@ -80,7 +82,7 @@ void first_pass(char *file_name_without_postfix)
         }
         else
         {
-            /* not all the above? must be an command line */
+            /* not all the above? must be a command line */
             is_line_valid = handle_command_line(&symbol_table, line, &array_of_commands, &IC);
         }
 
@@ -92,15 +94,19 @@ void first_pass(char *file_name_without_postfix)
 
         if ((IC + DC) > MAX_MEMORY_SIZE)
         {
-            safe_exit(PROCESS_ERROR_MAX_MEMORY_SIZE_EXCEEDED);
+            /* exceeded max memory, should stop */
+            print_error(PROCESS_ERROR_MAX_MEMORY_SIZE_EXCEEDED);
+            return 0;
         }
     }
 
     if (has_errors)
     {
-        safe_exit(PROCESS_ERROR_FIRST_PASS_FAILED);
+        print_error(PROCESS_ERROR_FIRST_PASS_FAILED);
+        return 0;
     }
 
+    /*DEBUG*/
     // loop data array and prints it values
     printf("data array after first pass (%d):\n", DC);
     for (i = 0; i < DC; i++)
@@ -124,4 +130,6 @@ void first_pass(char *file_name_without_postfix)
     fclose(file);
 
     printf("first pass finished\n");
+
+    return 1;
 }

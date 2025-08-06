@@ -3,32 +3,6 @@
 #include <string.h>
 #include "Headers/files_extractor.h"
 
-/*this function recieves .as file after macros expand and creates .am file*/
-void generateAmFile(char *name, char **expandedLines, int lineCount)
-{
-    int i; /*parameter for loops*/
-    FILE *amFile;
-    char fileName[256];
-
-    strcpy(fileName, name);  /*creating am file*/
-    strcat(fileName, ".am"); /*adding the .am in the end of the name*/
-
-    amFile = fopen(fileName, "w"); /*open the am file that created to writing*/
-    if (amFile == NULL)            /* checks for error while the opening*/
-    {
-        printf("Error: Can't create file %s\n", fileName);
-        return;
-    }
-
-    for (i = 0; i < lineCount; i++)
-    {
-        fprintf(amFile, "%s\n", expandedLines[i]); /*adding the expanded line*/
-    }
-
-    fclose(amFile);
-    printf("Generated file: %s\n", fileName); /*print a message that .am file has been created*/
-}
-
 void convertToSpecialBase4(int value, char *output) /*converting the input to a dedicate base 4 code for the object file*/
 {
     int i;
@@ -42,7 +16,7 @@ void convertToSpecialBase4(int value, char *output) /*converting the input to a 
     output[5] = '\0';
 }
 
-void generateObFile(char *name, char ***code, int codeLength, char ***data, int dataLength)
+void generate_ob_file(char *name, char ***code, int codeLength, char ***data, int dataLength)
 {
     FILE *obFile;
     char fileName[256];
@@ -79,7 +53,7 @@ void generateObFile(char *name, char ***code, int codeLength, char ***data, int 
     printf("Generated file: %s\n", fileName);
 }
 
-void generateEntryFile(char *name, char **entryLabels, int *addresses, int entryCount)
+void generate_entry_file(char *name, char **entryLabels, int *addresses, int entryCount)
 {
     FILE *entFile;
     char fileName[256];
@@ -114,7 +88,7 @@ void generateEntryFile(char *name, char **entryLabels, int *addresses, int entry
 }
 
 /* creates extern file */
-void generateExternFile(char *name, char **externLabels, int *addresses, int externCount)
+void generate_extern_file(char *name, char **externLabels, int *addresses, int externCount)
 {
     FILE *extFile;
     char fileName[256];
