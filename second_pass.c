@@ -11,7 +11,7 @@
 #include "Headers/files_extractor.h"
 #include "Headers/second_pass.h"
 
-void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, char **array_of_commands, int IC, char **array_of_data, int DC)
+void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, char **array_of_commands, int ICF, char **array_of_data, int DCF)
 {
     FILE *file;
     char *file_name;
@@ -19,14 +19,15 @@ void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, cha
     char *word, *main_op;
     int line_num = 0;
     int error_flag = 0;
+    int IC = 0;
 
-    char **entryLabels = NULL;
-    int *entryAddresses = NULL;
-    int entryCount = 0;
+    char **entry_labels = NULL;
+    int *entry_addresses = NULL;
+    int entry_count = 0;
 
-    char **externLabels = NULL;
-    int *externAddresses = NULL;
-    int externCount = 0;
+    char **extern_labels = NULL;
+    int *extern_addresses = NULL;
+    int extern_count = 0;
 
     printf("second pass started\n");
 
@@ -78,7 +79,7 @@ void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, cha
         /* check if the word is a guide that handled in first pass */
         if (is_data_guide(main_op) || is_string_guide(main_op) || is_mat_guide(main_op) || is_extern_guide(main_op))
         {
-            continue; // ignore in second pass
+            continue; /* ignore in second pass */
         }
 
         /*handle '.entry'*/
@@ -88,56 +89,51 @@ void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, cha
 
             if (!add_entry_attribute(symbol_table, entry_label))
             {
-                printf("Error: Symbol %s not found in symbol table (line %d)\n", entry_label, line_num);
                 error_flag = 1;
             }
             else
             {
                 // make "entry" list"
-                symbol_item *sym = find_symbol(symbol_table, entry_label);
+                symbol_item *sym = find_symbol_item_by_name(symbol_table, entry_label);
                 if (sym != NULL)
                 {
-                    entryLabels = realloc(entryLabels, sizeof(char *) * (entryCount + 1));
-                    entryAddresses = realloc(entryAddresses, sizeof(int) * (entryCount + 1));
-                    entryLabels[entryCount] = strdup(entry_label);
-                    entryAddresses[entryCount] = sym->address;
-                    entryCount++;
+                    entry_labels = realloc(entry_labels, sizeof(char *) * (entry_count + 1));
+                    entry_addresses = realloc(entry_addresses, sizeof(int) * (entry_count + 1));
+                    entry_labels[entry_count] = strdup(entry_label);
+                    entry_addresses[entry_count] = strcmp(sym->type, "code") == 0 ? MEMORY_START_ADDRESS + sym->address : sym->address;
+                    entry_count++;
                 }
             }
         }
         else
         {
-            /*if it's command line, need to encode it encode it*/
-            if (!encode_second_pass_operands(line, ALLOCATION_MISSING, 0, &IC, &array_of_commands, symbol_table, &externLabels, &externAddresses, &externCount))
-            {
-                printf("Line %d: Error while encoding operands.\n", line_num);
-                error_flag = 1;
-            }
+            /*if it's command line, maybe we need to encode some of its operands */
+            handle_command_line_second_pass(symbol_table, line, &array_of_commands, &IC, &extern_labels, &extern_addresses, &extern_count);
         }
     }
 
     /* creation of final files (.ob, .entry, .extrn)*/
-    generate_ob_file(file_name_without_postfix, array_of_commands, IC, array_of_data, DC);
+    generate_ob_file(file_name_without_postfix, array_of_commands, ICF, array_of_data, DCF);
 
-    if (entryCount > 0) // to not create entry file if there are no entries
+    if (!error_flag && entry_count > 0) // to not create entry file if there are no entries
     {
-        generate_entry_file(file_name_without_postfix, entryLabels, entryAddresses, entryCount);
+        generate_entry_file(file_name_without_postfix, entry_labels, entry_addresses, entry_count);
     }
-    if (externCount > 0) // to not create extern file if there are no externs
+    if (!error_flag && extern_count > 0) // to not create extern file if there are no externs
     {
-        generate_extern_file(file_name_without_postfix, externLabels, externAddresses, externCount);
+        generate_extern_file(file_name_without_postfix, extern_labels, extern_addresses, extern_count);
     }
 
     // cleaning memory
-    for (int i = 0; i < entryCount; i++)
-        free(entryLabels[i]);
-    free(entryLabels);
-    free(entryAddresses);
+    for (int i = 0; i < entry_count; i++)
+        free(entry_labels[i]);
+    free(entry_labels);
+    free(entry_addresses);
 
-    for (int i = 0; i < externCount; i++)
-        free(externLabels[i]);
-    free(externLabels);
-    free(externAddresses);
+    for (int i = 0; i < extern_count; i++)
+        free(extern_labels[i]);
+    free(extern_labels);
+    free(extern_addresses);
 
     free(file_name);
 
@@ -152,64 +148,224 @@ void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, cha
     }
 }
 
-int encode_second_pass_operands(char *op, int type, int space, int *IC, char ***array_of_commands, symbol_item *symbol_table, char ***externLabels, int **externAddresses, int *externCount)
+int add_entry_attribute(symbol_item *symbol_table, char *entry_label)
 {
+    symbol_item *curr = find_symbol_item_by_name(symbol_table, entry_label);
+    if (curr == NULL)
+    {
+        // error label not found
+        return 0;
+    }
+
+    if (strcmp(curr->type, "external") == 0)
+    {
+        // error label cant be both
+        return 0;
+    }
+
+    curr->is_entry = 1;
+    return 1;
+}
+
+int handle_command_line_second_pass(symbol_item **symbol_table, char *line, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+{
+    char *command, *label, *label_name, *rest_of_line;
+    int command_index;
+
+    label = strtok(strdup(line), " ");
+    if (is_label_declaration(label))
+    {
+        label_name = get_label_name(label);
+        command = strtok(NULL, " ");
+    }
+    else
+    {
+        command = strdup(label);
+    }
+
+    command = delete_white_spaces_start_and_end(command);
+    command_index = get_command_index(command);
+    if (command_index == -1)
+    {
+        print_error(PROCESS_ERROR_INVALID_COMMAND);
+        return 0;
+    }
+
+    rest_of_line = strtok(NULL, "\n");
+
+    switch (command_index)
+    {
+    case COMMAND_MOV:
+    case COMMAND_CMP:
+    case COMMAND_ADD:
+    case COMMAND_SUB:
+    case COMMAND_LEA:
+        return handle_two_op_line(symbol_table, command_index, rest_of_line, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+        break;
+    case COMMAND_CLR:
+    case COMMAND_NOT:
+    case COMMAND_INC:
+    case COMMAND_DEC:
+    case COMMAND_JMP:
+    case COMMAND_BNE:
+    case COMMAND_JSR:
+    case COMMAND_RED:
+    case COMMAND_PRN:
+        return handle_one_op_line(symbol_table, command_index, rest_of_line, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+        break;
+    case COMMAND_RTS:
+    case COMMAND_STOP:
+        return handle_no_op_line_second_pass(symbol_table, command_index, rest_of_line, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+        break;
+    default:
+        print_error(PROCESS_ERROR_INVALID_COMMAND);
+        return 0;
+    }
+}
+
+int handle_no_op_line_second_pass(symbol_item **symbol_table, int command_index, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+{
+    // ensure str is empty
+    if (str != NULL && !is_empty_line(str))
+    {
+        print_error(PROCESS_ERROR_INVALID_NO_OP_LINE);
+        return 0;
+    }
+
+    return handle_op_line(symbol_table, command_index, NULL, NULL, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+}
+
+int handle_one_op_line(symbol_item **symbol_table, int command_index, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+{
+    char *dst;
+
+    dst = strdup(str);
+    dst = delete_white_spaces_start_and_end(dst);
+    printf("dst: %s\n", dst);
+
+    if (dst == NULL)
+    {
+        print_error(PROCESS_ERROR_INVALID_DST_ALLOCATION);
+        return 0;
+    }
+
+    return handle_op_line(symbol_table, command_index, NULL, dst, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+}
+
+int handle_two_op_line(symbol_item **symbol_table, int command_index, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+{
+    char *src, *dst;
+
+    src = strtok(strdup(str), ",");
+    src = delete_white_spaces_start_and_end(src);
+    if (src == NULL)
+    {
+        print_error(PROCESS_ERROR_INVALID_SRC_ALLOCATION);
+        return 0;
+    }
+
+    dst = strtok(NULL, ",");
+    dst = delete_white_spaces_start_and_end(dst);
+    if (dst == NULL)
+    {
+        print_error(PROCESS_ERROR_INVALID_DST_ALLOCATION);
+        return 0;
+    }
+
+    printf("src: %s, dst: %s\n", src, dst);
+    return handle_op_line(symbol_table, command_index, src, dst, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+}
+
+int handle_op_line(symbol_item **symbol_table, int command_index, char *src, char *dst, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+{
+    char *line_binary_code;
+    int src_type, dst_type, src_space, dst_space, L = 0;
+
+    src_type = get_allocation_type(src);
+    printf("src type: %d\n", src_type);
+    if (src_type == ALLOCATION_INVALID)
+    {
+        print_error(PROCESS_ERROR_INVALID_SRC_ALLOCATION);
+        return 0;
+    }
+
+    dst_type = get_allocation_type(dst);
+    printf("dst type: %d\n", dst_type);
+    if (dst_type == ALLOCATION_INVALID)
+    {
+        print_error(PROCESS_ERROR_INVALID_DST_ALLOCATION);
+        return 0;
+    }
+
+    /* we already encoded the command line, skip*/
+    (*IC)++;
+
+    printf("handling: operands src: %s, dst: %s\n", src, dst);
+    if (src_type == ALLOCATION_REGISTER && dst_type == ALLOCATION_REGISTER)
+    {
+        (*IC)++;
+        return 1;
+    }
+
+    if (!encode_second_pass_operands(src, src_type, src_space, IC, array_of_commands, symbol_table, extern_labels, extern_addresses, extern_count))
+    {
+        return 0;
+    }
+
+    return encode_second_pass_operands(dst, dst_type, dst_space, IC, array_of_commands, symbol_table, extern_labels, extern_addresses, extern_count);
+}
+
+int encode_second_pass_operands(char *op, int type, int space, int *IC, char ***array_of_commands, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count)
+{
+    int is_external = 0;
     symbol_item *sym;
 
-    // in case that there is no op
     if (type == ALLOCATION_MISSING)
     {
         return 1;
     }
-
-    // case of matrix
-    if (type == ALLOCATION_MAT)
+    else if (type == ALLOCATION_REGISTER || type == ALLOCATION_IMMEDIATE)
     {
-        sym = find_symbol(symbol_table, strtok(strdup(op), "[")); // start of matrix
-        if (sym == NULL)                                          // if symbil is not in the symbol table
+        /* already handled */
+    }
+    else if (type == ALLOCATION_MAT)
+    {
+        if (!set_second_pass_mat_allocation_binary_code(op, array_of_commands, *IC, symbol_table, extern_labels, extern_addresses, extern_count))
         {
             return 0;
         }
-
-        (*array_of_commands)[*IC] = convert_num_to_10_bits(sym->address); // need to change to 8 bits convert //encode mat address to 10 bits
-
-        if (strcmp(sym->type, "external") == 0)
-        {
-            *externLabels = realloc(*externLabels, sizeof(char *) * (*externCount + 1));
-            *externAddresses = realloc(*externAddresses, sizeof(int) * (*externCount + 1));
-            (*externLabels)[*externCount] = strdup(sym->name);
-            (*externAddresses)[*externCount] = *IC + MEMORY_START_ADDRESS;
-            (*externCount)++;
-        }
-
-        (*IC)++;
-        return 1;
     }
-
-    // case of direct
-    if (type == ALLOCATION_DIRECT)
+    else if (type == ALLOCATION_DIRECT)
     {
-        sym = find_symbol(symbol_table, op);
+        op = delete_white_spaces_start_and_end(op);
+        sym = find_symbol_item_by_name(symbol_table, op);
         if (sym == NULL)
         {
+            // error symbol not found
             return 0;
         }
 
-        (*array_of_commands)[*IC] = convert_num_to_10_bits(sym->address); // encode to 10 bits
-
         if (strcmp(sym->type, "external") == 0)
         {
-            *externLabels = realloc(*externLabels, sizeof(char *) * (*externCount + 1));
-            *externAddresses = realloc(*externAddresses, sizeof(int) * (*externCount + 1));
-            (*externLabels)[*externCount] = strdup(sym->name);
-            (*externAddresses)[*externCount] = *IC + MEMORY_START_ADDRESS;
-            (*externCount)++;
+            is_external = 1;
         }
 
-        (*IC)++;
-        return 1;
+        if (is_external)
+        {
+            (*array_of_commands)[*IC] = convert_num_to_8_bits(sym->address, EXTERNAL_CODE);
+            *extern_labels = realloc(*extern_labels, sizeof(char *) * (*extern_count + 1));
+            *extern_addresses = realloc(*extern_addresses, sizeof(int) * (*extern_count + 1));
+            (*extern_labels)[*extern_count] = strdup(sym->name);
+            (*extern_addresses)[*extern_count] = *IC + MEMORY_START_ADDRESS;
+            (*extern_count)++;
+        }
+        else
+        {
+            (*array_of_commands)[*IC] = convert_num_to_8_bits(sym->address, RELOCATABLE_CODE);
+        }
     }
 
-    // no implemention for immediate or register in second pass
+    (*IC) = *IC + space;
+
     return 1;
 }

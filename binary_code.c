@@ -5,6 +5,8 @@
 #include "Headers/error.h"
 #include "Headers/consts.h"
 #include "Headers/binary_code.h"
+#include "Headers/utils.h"
+#include "Headers/symbol_table.h"
 
 char *build_command_line_binary_code(int command_index, int src_type, int dst_type)
 {
@@ -116,7 +118,7 @@ char *get_direct_allocation_binary_code(char *str)
     }
 
     num = get_num_from_direct_allocation(temp);
-    binary_code = convert_num_to_8_bits(num);
+    binary_code = convert_num_to_8_bits(num, ABSOLUTE_CODE);
     return binary_code;
 }
 
@@ -127,10 +129,14 @@ int get_num_from_direct_allocation(char *str)
     return atoi(temp);
 }
 
-char *convert_num_to_8_bits(int num)
+char *convert_num_to_8_bits(int num, int ARE_type)
 {
     int i;
-    char *binary_code = malloc(BINARY_CODE_SIZE);
+    char *binary_code, *ARE_code;
+
+    binary_code = malloc(BINARY_CODE_SIZE);
+    ARE_code = get_ARE_binary_code(ARE_type);
+
     if (binary_code == NULL)
     {
         safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
@@ -141,9 +147,8 @@ char *convert_num_to_8_bits(int num)
     {
         binary_code[7 - i] = (num & (1 << i)) ? '1' : '0';
     }
-    binary_code[8] = '0';
-    binary_code[9] = '0';
-    binary_code[10] = '\0';
+    binary_code[8] = '\0';
+    strcat(binary_code, ARE_code);
 
     printf("num: %d, binary code: %s\n", num, binary_code);
     return binary_code;
@@ -236,7 +241,7 @@ char *get_register_allocations_binary_code(char *src, char *dst)
 
 int set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_commands, int IC)
 {
-    // we dont care about the label encode in first pass
+    /* we dont care about the label encode in first pass, skip its definition */
     int valid;
     char *temp, *reg1, *reg2;
 
@@ -268,6 +273,50 @@ int set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_comman
 
     (*array_of_commands)[IC] = get_register_allocations_binary_code(reg1, reg2);
     IC++;
+
+    return 1;
+}
+
+int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_commands, int *IC, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count)
+{
+    // we only care about the label encode in second pass
+    int i = 0, is_external = 0;
+    char *temp, label[LABEL_SIZE];
+
+    temp = strdup(str);
+    while (*temp != '[')
+    {
+        label[i] = *temp;
+        i++;
+        temp++;
+    }
+    label[i] = '\0';
+
+    symbol_item *sym = find_symbol_item_by_name(symbol_table, label);
+    if (sym == NULL)
+    {
+        // print_error(PROCESS_ERROR_SYMBOL_NOT_FOUND);
+        return 0;
+    }
+
+    if (strcmp(sym->type, "external") == 0)
+    {
+        is_external = 1;
+    }
+
+    if (is_external)
+    {
+        (*array_of_commands)[*IC] = convert_num_to_8_bits(sym->address, EXTERNAL_CODE);
+        *extern_labels = realloc(*extern_labels, sizeof(char *) * (*extern_count + 1));
+        *extern_addresses = realloc(*extern_addresses, sizeof(int) * (*extern_count + 1));
+        (*extern_labels)[*extern_count] = strdup(sym->name);
+        (*extern_addresses)[*extern_count] = *IC + MEMORY_START_ADDRESS;
+        (*extern_count)++;
+    }
+    else
+    {
+        (*array_of_commands)[*IC] = convert_num_to_8_bits(sym->address, RELOCATABLE_CODE);
+    }
 
     return 1;
 }

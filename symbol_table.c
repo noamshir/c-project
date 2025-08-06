@@ -5,7 +5,7 @@
 #include "Headers/error.h"
 #include "Headers/string.h"
 
-symbol_item *create_symbol_item(char *name, char *type, int address)
+symbol_item *create_symbol_item(char *name, char *type, int address, int is_entry)
 {
     symbol_item *item = malloc(sizeof(symbol_item));
     if (item == NULL)
@@ -15,11 +15,12 @@ symbol_item *create_symbol_item(char *name, char *type, int address)
     item->name = strdup(name);
     item->address = address;
     item->type = strdup(type);
+    item->is_entry = is_entry;
     item->next = NULL;
     return item;
 }
 
-int add_symbol_item(symbol_item **head, char *name, char *type, int address)
+int add_symbol_item(symbol_item **head, char *name, char *type, int address, int is_entry)
 {
     symbol_item *item, *temp;
 
@@ -34,7 +35,7 @@ int add_symbol_item(symbol_item **head, char *name, char *type, int address)
         return 0;
     }
 
-    item = create_symbol_item(name, type, address);
+    item = create_symbol_item(name, type, address, is_entry);
 
     if (find_symbol_item_by_name(*head, name) != NULL)
     {

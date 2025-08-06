@@ -1,11 +1,16 @@
-mcro my_mcro
-x: .data -5 ,4,3,2,1
-str: .string   "Hello World" 
+MAIN: mov M1[r2][r7],LENGTH
+ add r2,STR
+LOOP: jmp END
+ prn #-5
+mcro a_mc
+mov M1[r3][r3],r3
+ bne LOOP
 mcroend
-LABELI: .mat [1][3] 1,  4,     6
-my_mcro 
-.extern LENGTH
-   mov   #+3,  aaa[r1][r3]
-; FFF
-   clear:   clr   x
-stop
+ sub r1, r4
+ inc K
+a_mc
+END: stop
+STR: .string “abcdef”
+LENGTH: .data 6,-9,15
+K: .data 22
+M1: .mat [2][2] 1,2,3,4 

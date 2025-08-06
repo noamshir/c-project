@@ -46,11 +46,12 @@ char *get_direct_allocation_binary_code(char *str);
 int get_num_from_direct_allocation(char *str);
 /**
  * This function convert a number to 8 bits binary code
- * and return it as 10 bits binary code (adds "00" at the end).
+ * and return it as 10 bits binary code (adds ARE coded at the end).
  * @param num the number to convert.
+ * @param ARE_type the ARE_type.
  * @return a 10 chars string that represents the number received as param binary code in 8 bits plus 00 at the end.
  */
-char *convert_num_to_8_bits(int num);
+char *convert_num_to_8_bits(int num, int ARE_type);
 /**
  * @brief convert a number to 10 bits binary code
  * @param num the number to convert.

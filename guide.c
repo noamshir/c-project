@@ -18,7 +18,7 @@ int handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_d
     {
         /* get label name (without the :) and add it to symbol table */
         label_name = get_label_name(opening_word);
-        if (!add_symbol_item(symbol_table, label_name, "data", *DC))
+        if (!add_symbol_item(symbol_table, label_name, "data", *DC, 0))
         {
             return 0;
         }
@@ -344,5 +344,5 @@ int handle_extern_guide_line(symbol_item **symbol_table, char *line)
         print_error(PROCESS_ERROR_INVALID_EXTERN_LABEL_NAME);
         return 0;
     }
-    return add_symbol_item(symbol_table, next_word, "external", 0);
+    return add_symbol_item(symbol_table, next_word, "external", 0, 0);
 }

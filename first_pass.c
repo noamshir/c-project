@@ -13,7 +13,7 @@
 
 int first_pass(char *file_name_without_postfix)
 {
-    int IC = 0, DC = 0, line_num = 0, i = 0, is_line_valid = 0, has_errors = 0;
+    int IC = 0, DC = 0, ICF, DCF, line_num = 0, i = 0, is_line_valid = 0, has_errors = 0;
     char *file_name, line[LINE_SIZE], *first_word_in_line, *main_op, **array_of_commands = NULL, **array_of_data = NULL;
     FILE *file;
     symbol_item *symbol_table = NULL;
@@ -106,6 +106,9 @@ int first_pass(char *file_name_without_postfix)
         return 0;
     }
 
+    ICF = IC;
+    DCF = DC;
+
     /*DEBUG*/
     // loop data array and prints it values
     printf("data array after first pass (%d):\n", DC);
@@ -121,7 +124,7 @@ int first_pass(char *file_name_without_postfix)
         printf("command: %s\n", array_of_commands[i]);
     }
 
-    update_data_symbol_items_address(symbol_table, IC);
+    update_data_symbol_items_address(symbol_table, IC + MEMORY_START_ADDRESS);
 
     free(file_name);
     free(array_of_commands);
