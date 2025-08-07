@@ -212,7 +212,7 @@ int handle_mat_guide(char *guide_declaration, char ***array_of_data, int *DC)
             }
             num = atoi(str);
         }
-        // allocate memo to array of data
+        /* allocate memo to array of data */
         *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
         if (*array_of_data == NULL)
         {
@@ -345,4 +345,61 @@ int handle_extern_guide_line(symbol_item **symbol_table, char *line)
         return 0;
     }
     return add_symbol_item(symbol_table, next_word, "external", 0, 0);
+}
+
+int handle_entry_guide(char *entry_label, symbol_item **symbol_table, char ***entry_labels, int **entry_addresses, int *entry_count)
+{
+    symbol_item *sym;
+
+    if (!add_entry_attribute(symbol_table, entry_label))
+    {
+        return 0;
+    }
+    else
+    {
+        printf("Adding entry: %s\n", entry_label);
+
+        /* add entry label and address*/
+        sym = find_symbol_item_by_name(*symbol_table, entry_label);
+        if (sym != NULL)
+        {
+            *entry_labels = realloc(*entry_labels, sizeof(char *) * (*entry_count + 1));
+            if (*entry_labels == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+
+            *entry_addresses = realloc(*entry_addresses, sizeof(int) * (*entry_count + 1));
+            if (*entry_addresses == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+
+            /* add label and address */
+            (*entry_labels)[*entry_count] = strdup(entry_label);
+            (*entry_addresses)[*entry_count] = strcmp(sym->type, "code") == 0 ? MEMORY_START_ADDRESS + sym->address : sym->address;
+            (*entry_count)++;
+        }
+    }
+
+    return 1;
+}
+
+int add_entry_attribute(symbol_item **symbol_table, char *entry_label)
+{
+    symbol_item *curr = find_symbol_item_by_name(*symbol_table, entry_label);
+    if (curr == NULL)
+    {
+        print_error(PROCESS_ERROR_LABEL_NOT_IN_SYMBOL_TABLE);
+        return 0;
+    }
+
+    if (strcmp(curr->type, "external") == 0)
+    {
+        print_error(PROCESS_ERROR_ENTRY_GUIDE_CANT_BE_EXTERNAL);
+        return 0;
+    }
+
+    curr->is_entry = 1;
+    return 1;
 }

@@ -103,3 +103,18 @@ void update_data_symbol_items_address(symbol_item **head, int ICF)
     if ((*head)->next != NULL)
         update_data_symbol_items_address(&((*head)->next), ICF);
 }
+
+void free_symbol_table(symbol_item *head)
+{
+    if (head == NULL)
+    {
+        return;
+    }
+
+    if (head->next != NULL)
+        free_symbol_table(head->next);
+
+    free(head->name);
+    free(head->type);
+    free(head);
+}

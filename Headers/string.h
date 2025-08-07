@@ -177,7 +177,7 @@ int is_mat_allocation(char *word);
  * @param reg2 - a string to put the second register value in.
  * @return - 1 if we extracted the regs successfully, 0 otherwise.
  */
-int get_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2);
+int set_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2);
 /**
  * check if a string is a register allocation (r0,r1,...,r7)
  * @param word - the string to check.

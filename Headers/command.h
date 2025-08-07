@@ -10,7 +10,7 @@
  * @param IC a pointer to an integer counting the command items.
  * @return 1 if the line is a valid command line and was handled successfully, 0 otherwise.
  */
-int handle_command_line(symbol_item **symbol_table, char *line, char ***array_of_commands, int *IC);
+int handle_command_line_first_pass(symbol_item **symbol_table, char *line, char ***array_of_commands, int *IC);
 /**
  * @brief process and handle a command line with no operators.
  * This function gets a string representing a command line operands and ensure line is valid,
@@ -21,7 +21,7 @@ int handle_command_line(symbol_item **symbol_table, char *line, char ***array_of
  * @param IC a pointer to an integer counting the command items.
  * @return 1 if the line is a valid command line with no operators and was handled successfully, 0 otherwise.
  */
-int handle_no_op_line(int command_index, char *str, char ***array_of_commands, int *IC);
+int handle_no_op_line_first_pass(int command_index, char *str, char ***array_of_commands, int *IC);
 /**
  * @brief process and handle a command line with one operator (op).
  * This function gets a string representing a command line operands and ensure line is valid,
@@ -32,7 +32,7 @@ int handle_no_op_line(int command_index, char *str, char ***array_of_commands, i
  * @param IC a pointer to an integer counting the command items.
  * @return 1 if the line is a valid command line with one operator and was handled successfully, 0 otherwise.
  */
-int handle_one_op_line(int command_index, char *str, char ***array_of_commands, int *IC);
+int handle_one_op_line_first_pass(int command_index, char *str, char ***array_of_commands, int *IC);
 /**
  * @brief process and handle a command line with two operators (op1, op2).
  * This function gets a string representing a command line operands and ensure line is valid,
@@ -43,7 +43,7 @@ int handle_one_op_line(int command_index, char *str, char ***array_of_commands, 
  * @param IC a pointer to an integer counting the command items.
  * @return 1 if the line is a valid command line with two operators and was handled successfully, 0 otherwise.
  */
-int handle_two_op_line(int command_index, char *str, char ***array_of_commands, int *IC);
+int handle_two_op_line_first_pass(int command_index, char *str, char ***array_of_commands, int *IC);
 /**
  * @brief process and handle a command line operands.
  * This function gets strings representing a command line src and dst operands (if exists), ensure its valid
@@ -55,7 +55,7 @@ int handle_two_op_line(int command_index, char *str, char ***array_of_commands, 
  * @param IC a pointer to an integer counting the command items.
  * @return 1 if the command line params are valid and was handled successfully, 0 otherwise.
  */
-int handle_op_line(int command_index, char *src, char *dst, char ***array_of_commands, int *IC);
+int handle_op_line_first_pass(int command_index, char *src, char *dst, char ***array_of_commands, int *IC);
 /**
  * @brief encode first pass operands.
  * This function gets an operand, its type and the space it takes
@@ -68,6 +68,14 @@ int handle_op_line(int command_index, char *src, char *dst, char ***array_of_com
  * @return 1 if the encoding was successful, 0 otherwise.
  */
 int encode_first_pass_operands(char *op, int type, int space, int *IC, char ***array_of_commands);
+
+int handle_command_line_second_pass(symbol_item **symbol_table, char *line, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
+int handle_no_op_line_second_pass(symbol_item **symbol_table, int command_index, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
+int handle_one_op_line_second_pass(symbol_item **symbol_table, int command_index, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
+int handle_two_op_line_second_pass(symbol_item **symbol_table, int command_index, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
+int handle_op_line_second_pass(symbol_item **symbol_table, int command_index, char *src, char *dst, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
+int encode_second_pass_operands(char *op, int type, int space, int *IC, char ***array_of_commands, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count);
+
 /**
  * @brief calculate the spaces needed for encoding src and dst operands.
  * This function calculates the numbers of lines the encoding for the given src type and dst type takes,

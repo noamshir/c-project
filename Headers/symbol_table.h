@@ -45,4 +45,7 @@ symbol_item *find_symbol_item_by_name(symbol_item *head, char *name);
  * @param ICF an integer to add to all data symbol items
  */
 void update_data_symbol_items_address(symbol_item **head, int ICF);
+
+void free_symbol_table(symbol_item *head);
+
 #endif

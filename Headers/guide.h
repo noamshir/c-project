@@ -59,4 +59,7 @@ int set_rows_and_cols_from_mat_declaration(char *guide_declaration, int *rows, i
  * @return 1 if the extern guide line is valid and was handled successfully, 0 otherwise.
  */
 int handle_extern_guide_line(symbol_item **symbol_table, char *line);
+
+int handle_entry_guide(char *entry_label, symbol_item **symbol_table, char ***entry_labels, int **entry_addresses, int *entry_count);
+int add_entry_attribute(symbol_item **symbol_table, char *entry_label);
 #endif

@@ -89,3 +89,18 @@ mcro_item *find_mcro_item_by_name(mcro_item *head, char *name)
 
     return find_mcro_item_by_name(head->next, name);
 }
+
+void free_mcro_table(mcro_item *head)
+{
+    if (head == NULL)
+    {
+        return;
+    }
+
+    if (head->next != NULL)
+        free_mcro_table(head->next);
+
+    free(head->name);
+    free(head->value);
+    free(head);
+}

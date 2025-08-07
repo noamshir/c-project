@@ -84,7 +84,7 @@ int first_pass(char *file_name_without_postfix)
         else
         {
             /* not all the above? must be a command line */
-            is_line_valid = handle_command_line(&symbol_table, line, &array_of_commands, &IC);
+            is_line_valid = handle_command_line_first_pass(&symbol_table, line, &array_of_commands, &IC);
         }
 
         if (!is_line_valid)
@@ -103,6 +103,9 @@ int first_pass(char *file_name_without_postfix)
 
     if (has_errors)
     {
+        free_symbol_table(symbol_table);
+        free_array_of_strings(array_of_commands, IC);
+        free_array_of_strings(array_of_data, DC);
         print_error(PROCESS_ERROR_FIRST_PASS_FAILED);
         return 0;
     }
@@ -130,7 +133,13 @@ int first_pass(char *file_name_without_postfix)
 
     printf("first pass finished\n");
 
+    /* second pass */
     second_pass(file_name_without_postfix, &symbol_table, &array_of_commands, ICF, &array_of_data, DCF);
+
+    /* free memory */
+    free_symbol_table(symbol_table);
+    free_array_of_strings(array_of_commands, IC);
+    free_array_of_strings(array_of_data, DC);
 
     return 1;
 }

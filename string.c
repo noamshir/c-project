@@ -43,12 +43,13 @@ char *registers[8] = {
 
 char *delete_white_spaces_start_and_end(char *str)
 {
+    char *temp = str;
+
     if (str == NULL)
     {
         return NULL;
     }
 
-    char *temp = str;
     while (*temp == ' ' || *temp == '\t' || *temp == '\n')
     {
         ++temp;
@@ -71,6 +72,8 @@ char *delete_white_spaces_start_and_end(char *str)
 
 int is_integer(char *str)
 {
+    int i = 0;
+
     if (str == NULL)
     {
         return 0;
@@ -81,10 +84,10 @@ int is_integer(char *str)
         return 0;
     }
 
-    int i = 0;
-    // check for signs
+    /* check for signs */
     if (str[0] == '+' || str[0] == '-')
     {
+        /* first char is a sign, start check from second char */
         i = 1;
     }
 
@@ -92,7 +95,7 @@ int is_integer(char *str)
     {
         if (!is_char_digit(str[i]))
         {
-            // one char is not a digit, string isnt a number
+            /* one char is not a digit, string isn't a number */
             return 0;
         }
     }
@@ -141,16 +144,15 @@ int is_empty_line(char *line)
         return 1;
     }
 
-    // loop the string
     while (*line != '\0')
     {
-        //
         if (*line != ' ' && *line != '\t' && *line != '\n')
         {
             return 0;
         }
         line++;
     }
+
     return 1;
 }
 
@@ -204,7 +206,6 @@ int is_valid_label_name(char *str)
         return 0;
     }
 
-    // loop the string
     while (*str != '\0')
     {
         if (!is_char_alphabetical_or_digit(*str))
@@ -218,6 +219,7 @@ int is_valid_label_name(char *str)
 
 int is_label_declaration(char *word)
 {
+    int end_of_string, i;
     if (word == NULL)
     {
         return 0;
@@ -227,14 +229,14 @@ int is_label_declaration(char *word)
         return 0;
     }
 
-    int end_of_string = strlen(word) - 1;
+    end_of_string = strlen(word) - 1;
     if (word[end_of_string] == ':')
     {
         return 1;
     }
 
-    // check that each char is abc or 0-9
-    for (int i = 0; i < end_of_string; i++)
+    /* check that each char is abc or 0-9 */
+    for (i = 0; i < end_of_string; i++)
     {
         if (!is_char_alphabetical_or_digit(word[i]))
         {
@@ -252,7 +254,7 @@ char *get_label_name(char *word)
         return NULL;
     }
 
-    // remove last char in word (:)
+    /* remove last char in word (:) */
     word[strlen(word) - 1] = '\0';
     return word;
 }
@@ -304,7 +306,7 @@ int is_data_guide_declaration(char *guide_declaration)
 {
     char *num, *temp;
 
-    // check that guide_declaration is of type: "num1, num2, ...., numn"
+    /* check that guide_declaration is of type: "num1, num2, ...., numn" */
     printf("checking data guide declaration: %s\n", guide_declaration);
 
     temp = strdup(guide_declaration);
@@ -350,7 +352,7 @@ int is_data_guide_declaration(char *guide_declaration)
 
 int is_mat_declaration(char *guide_declaration)
 {
-    // check that next word is [num1][num2] and optional (num1, num2...)
+    /* check that next word is [num1][num2] and optional (num1, num2...) */
     char *temp;
     temp = strdup(guide_declaration);
     temp = strtok(temp, " ");
@@ -365,7 +367,7 @@ int is_mat_declaration(char *guide_declaration)
         return 0;
     }
 
-    // loop the first [num] and check if valid
+    /* loop the first [num] and check if valid */
     for (temp = temp + 1; *temp != ']'; temp++)
     {
         if (!is_char_digit(*temp))
@@ -381,7 +383,7 @@ int is_mat_declaration(char *guide_declaration)
     }
     temp++;
 
-    // loop the second [num] and check if valid
+    /* loop the second [num] and check if valid */
     for (; *temp != ']'; temp++)
     {
         if (!is_char_digit(*temp))
@@ -426,8 +428,9 @@ int is_command(char *word)
 
 int is_register(char *word)
 {
-    // check if word is register
-    for (int i = 0; i < 8; i++)
+    int i;
+    /* check if word is register */
+    for (i = 0; i < 8; i++)
     {
         if (strcmp(word, registers[i]) == 0)
         {
@@ -470,7 +473,7 @@ int get_allocation_type(char *word)
 int is_immediate_allocation(char *word)
 {
     char *rest;
-    // check if str is of type #num
+    /* check if str is of type #num */
     if (word == NULL)
     {
         return 0;
@@ -485,7 +488,7 @@ int is_immediate_allocation(char *word)
         return 0;
     }
 
-    // rest is from index 1 to end
+    /* rest is from index 1 to end */
     rest = word + 1;
     if (is_integer(rest))
     {
@@ -497,7 +500,7 @@ int is_immediate_allocation(char *word)
 
 int is_mat_allocation(char *word)
 {
-    // check that next word is [reg1][reg2]
+    /* check that next word is [reg1][reg2] */
     int i = 0;
     char *label, *mat_def, *temp, *reg1, *reg2;
     if (word == NULL)
@@ -522,7 +525,7 @@ int is_mat_allocation(char *word)
     }
 
     temp = strchr(word, '[');
-    // no [ sign? cant be a mat def...
+    /* no [ sign? cant be a mat def... */
     if (temp == NULL)
     {
         return 0;
@@ -551,10 +554,10 @@ int is_mat_allocation(char *word)
     free(label);
 
     mat_def = strdup(temp);
-    return get_regs_from_mat_allocation(mat_def, reg1, reg2);
+    return set_regs_from_mat_allocation(mat_def, reg1, reg2);
 }
 
-int get_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)
+int set_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)
 {
     int i = 0;
     char *temp;
@@ -565,7 +568,7 @@ int get_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)
     }
 
     temp = strdup(mat_def);
-    // loop the first [reg] and check if valid
+    /* loop the first [reg] and check if valid */
     for (temp = mat_def + 1; *temp != ']'; temp++)
     {
         if (i > 1)
@@ -589,7 +592,7 @@ int get_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)
     }
     temp++;
 
-    // loop the second [reg] and check if valid
+    /* loop the second [reg] and check if valid */
     i = 0;
     for (; *temp != ']'; temp++)
     {
@@ -618,12 +621,15 @@ int is_register_allocation(char *word)
 
 int is_direct_allocation(char *word)
 {
-    // check that each char is abc or 0-9
-    for (int i = 0; i < strlen(word); i++)
+    int i;
+    /* check that each char is abc or 0-9 */
+    for (i = 0; i < strlen(word); i++)
     {
         if (!is_char_alphabetical_or_digit(word[i]))
         {
             return 0;
         }
     }
+
+    return 1;
 }

@@ -142,7 +142,7 @@ char *convert_num_to_8_bits(int num, int ARE_type)
         safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
     }
 
-    // convert num to binary (8 bits) and add 00 at the end
+    /* convert num to binary (8 bits) and add ARE code at the end */
     for (i = 7; i >= 0; i--)
     {
         binary_code[7 - i] = (num & (1 << i)) ? '1' : '0';
@@ -163,7 +163,7 @@ char *convert_num_to_10_bits(int num)
         safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
     }
 
-    // convert num to binary (10 bits)
+    /* convert num to binary (10 bits) */
     for (i = 9; i >= 0; i--)
     {
         binary_code[9 - i] = (num & (1 << i)) ? '1' : '0';
@@ -264,8 +264,8 @@ int set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_comman
     (*array_of_commands)[IC] = NULL;
     IC++;
 
-    // get registers from mat encode
-    valid = get_regs_from_mat_allocation(temp, reg1, reg2);
+    /* set registers from mat encode */
+    valid = set_regs_from_mat_allocation(temp, reg1, reg2);
     if (!valid)
     {
         return 0;
@@ -282,6 +282,7 @@ int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_comma
     /* we only care about the label encode in second pass */
     int i = 0, is_external = 0;
     char *temp, label[LABEL_SIZE];
+    symbol_item *sym;
 
     temp = strdup(str);
     while (*temp != '[')
@@ -291,10 +292,10 @@ int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_comma
         temp++;
     }
     label[i] = '\0';
-    symbol_item *sym = find_symbol_item_by_name(*symbol_table, label);
+    sym = find_symbol_item_by_name(*symbol_table, label);
     if (sym == NULL)
     {
-        // print_error(PROCESS_ERROR_SYMBOL_NOT_FOUND);
+        print_error(PROCESS_ERROR_LABEL_NOT_IN_SYMBOL_TABLE);
         return 0;
     }
 

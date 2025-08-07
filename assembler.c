@@ -24,7 +24,6 @@ int main(int argc, char *argv[])
         /* first pass */
         if (!first_pass(file_name))
         {
-            printf("first pass for file: %s failed\n", file_name);
             continue;
         }
 

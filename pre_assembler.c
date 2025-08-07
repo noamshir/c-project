@@ -10,7 +10,7 @@
 int pre_assembler(char *file_name_without_postfix)
 {
     FILE *as_fp, *am_fp;
-    char *am_file_name, *as_file_name, str[LINE_SIZE];
+    char *am_file_name, *as_file_name;
     mcro_item *mcro_table = NULL;
 
     printf("pre assembler started\n");
@@ -29,6 +29,7 @@ int pre_assembler(char *file_name_without_postfix)
     as_fp = fopen(as_file_name, "r");
     if (as_fp == NULL)
     {
+        free_mcro_table(mcro_table);
         free(as_file_name);
         print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return 0;
@@ -36,6 +37,7 @@ int pre_assembler(char *file_name_without_postfix)
 
     if (!fill_mcro_table(as_fp, &mcro_table))
     {
+        free_mcro_table(mcro_table);
         free(as_file_name);
         fclose(as_fp);
         return 0;
@@ -53,6 +55,7 @@ int pre_assembler(char *file_name_without_postfix)
     am_fp = fopen(am_file_name, "w+");
     if (am_fp == NULL)
     {
+        free_mcro_table(mcro_table);
         fclose(as_fp);
         free(as_file_name);
         free(am_file_name);
@@ -68,13 +71,15 @@ int pre_assembler(char *file_name_without_postfix)
 
     if (!replace_mcro_defines(&mcro_table, am_file_name))
     {
+        free_mcro_table(mcro_table);
         free(as_file_name);
         free(am_file_name);
         fclose(as_fp);
         return 0;
     }
 
-    /* free file names */
+    /* free file names & mcro table */
+    free_mcro_table(mcro_table);
     free(as_file_name);
     free(am_file_name);
     printf("pre assembler finished\n");

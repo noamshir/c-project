@@ -64,6 +64,11 @@ void print_error(int error_code)
     case PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM:
         printf("mat allocation invalid param\n");
         break;
+    case PROCESS_ERROR_ENTRY_GUIDE_CANT_BE_EXTERNAL:
+        printf("entry guide cant be external\n");
+        break;
+    case PROCESS_ERROR_LABEL_NOT_IN_SYMBOL_TABLE:
+        printf("label not in symbol table\n");
     case PROCESS_ERROR_SYMBOL_ALREADY_EXISTS:
         printf("symbol already exists\n");
         break;
