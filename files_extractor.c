@@ -10,9 +10,12 @@ void generate_ob_file(char *name, char ***code, int code_length, char ***data, i
     FILE *ob_file;
     char file_name[256];
     int i; /*parameter for loops*/
-    int counter = MEMORY_START_ADDRESS;
+    int address_counter = MEMORY_START_ADDRESS;
     char abcd_binary_code[6], abcd_address_code[5], abcd_code_length_code[5], abcd_data_length_code[5];
 
+    printf("generating ob file\n");
+    printf("code length: %d, data length: %d\n", code_length, data_length);
+    printf("address %d \n", address_counter);
     /*create object file and open it for writing*/
     strcpy(file_name, name);
     strcat(file_name, ".ob");
@@ -29,20 +32,23 @@ void generate_ob_file(char *name, char ***code, int code_length, char ***data, i
     /* the first line in the file, presents the length of the data and the code*/
     fprintf(ob_file, "%s %s\n", abcd_code_length_code, abcd_data_length_code);
 
+    printf("inserting encoded commands \n");
     for (i = 0; i < code_length; i++)
     {
-        convert_num_to_abcd_base(counter, abcd_address_code);
+        convert_num_to_abcd_base(MEMORY_START_ADDRESS + i, abcd_address_code);
         convert_binary_code_to_abcd_base((*code)[i], abcd_binary_code);
         fprintf(ob_file, "%s %s\n", abcd_address_code, abcd_binary_code);
-        counter++;
+
+        address_counter++;
     }
 
+    printf("inserting encoded data \n");
     for (i = 0; i < data_length; i++)
     {
-        convert_num_to_abcd_base(counter, abcd_address_code);
+        convert_num_to_abcd_base(MEMORY_START_ADDRESS + code_length + i, abcd_address_code);
         convert_binary_code_to_abcd_base((*data)[i], abcd_binary_code);
         fprintf(ob_file, "%s %s\n", abcd_address_code, abcd_binary_code);
-        counter++;
+        address_counter++;
     }
 
     fclose(ob_file);
@@ -54,6 +60,8 @@ void generate_entry_file(char *name, char **entry_labels, int *addresses, int en
     FILE *fp;
     char file_name[256], encoded[5];
     int i;
+
+    printf("generating entry file\n");
 
     /* to not create file if there is not lable */
     if (entry_count == 0)

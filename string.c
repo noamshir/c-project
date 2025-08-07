@@ -207,7 +207,7 @@ int is_valid_label_name(char *str)
     // loop the string
     while (*str != '\0')
     {
-        if (!is_char_alphabetical(*str))
+        if (!is_char_alphabetical_or_digit(*str))
         {
             return 0;
         }

@@ -4,22 +4,20 @@
 #include "Headers/string.h"
 #include "Headers/error.h"
 #include "Headers/symbol_table.h"
-#include "Headers/first_pass.h"
 #include "Headers/utils.h"
 #include "Headers/consts.h"
 #include "Headers/binary_code.h"
 #include "Headers/files_extractor.h"
 #include "Headers/second_pass.h"
+#include "Headers/command.h"
 
-void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, char **array_of_commands, int ICF, char **array_of_data, int DCF)
+void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, char ***array_of_commands, int ICF, char ***array_of_data, int DCF)
 {
     FILE *file;
     char *file_name;
     char line[LINE_SIZE];
     char *word, *main_op;
-    int line_num = 0;
-    int error_flag = 0;
-    int IC = 0;
+    int line_num = 0, error_flag = 0, IC = 0, i;
 
     char **entry_labels = NULL;
     int *entry_addresses = NULL;
@@ -63,13 +61,13 @@ void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, cha
 
         /*get the first word in the line*/
         word = strtok(strdup(line), " ");
-        delete_white_spaces(word);
+        word = delete_white_spaces_start_and_end(word);
 
         /*ignore lables words and save the command in param*/
-        if (is_label(word))
+        if (is_label_declaration(word))
         {
             main_op = strtok(NULL, " ");
-            delete_white_spaces(main_op);
+            main_op = delete_white_spaces_start_and_end(main_op);
         }
         else
         {
@@ -94,7 +92,7 @@ void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, cha
             else
             {
                 // make "entry" list"
-                symbol_item *sym = find_symbol_item_by_name(symbol_table, entry_label);
+                symbol_item *sym = find_symbol_item_by_name(*symbol_table, entry_label);
                 if (sym != NULL)
                 {
                     entry_labels = realloc(entry_labels, sizeof(char *) * (entry_count + 1));
@@ -108,12 +106,22 @@ void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, cha
         else
         {
             /*if it's command line, maybe we need to encode some of its operands */
-            handle_command_line_second_pass(symbol_table, line, &array_of_commands, &IC, &extern_labels, &extern_addresses, &extern_count);
+            handle_command_line_second_pass(symbol_table, line, array_of_commands, &IC, &extern_labels, &extern_addresses, &extern_count);
         }
     }
 
+    /*DEBUG*/
+    printf("commands array before second pass (%d):\n", ICF);
+    for (i = 0; i < ICF; i++)
+    {
+        printf("command: %s\n", (*array_of_commands)[i]);
+    }
+
     /* creation of final files (.ob, .entry, .extrn)*/
-    generate_ob_file(file_name_without_postfix, array_of_commands, ICF, array_of_data, DCF);
+    if (!error_flag)
+    {
+        generate_ob_file(file_name_without_postfix, array_of_commands, ICF, array_of_data, DCF);
+    }
 
     if (!error_flag && entry_count > 0) // to not create entry file if there are no entries
     {
@@ -125,12 +133,12 @@ void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, cha
     }
 
     // cleaning memory
-    for (int i = 0; i < entry_count; i++)
+    for (i = 0; i < entry_count; i++)
         free(entry_labels[i]);
     free(entry_labels);
     free(entry_addresses);
 
-    for (int i = 0; i < extern_count; i++)
+    for (i = 0; i < extern_count; i++)
         free(extern_labels[i]);
     free(extern_labels);
     free(extern_addresses);
@@ -148,9 +156,9 @@ void second_pass(char *file_name_without_postfix, symbol_item *symbol_table, cha
     }
 }
 
-int add_entry_attribute(symbol_item *symbol_table, char *entry_label)
+int add_entry_attribute(symbol_item **symbol_table, char *entry_label)
 {
-    symbol_item *curr = find_symbol_item_by_name(symbol_table, entry_label);
+    symbol_item *curr = find_symbol_item_by_name(*symbol_table, entry_label);
     if (curr == NULL)
     {
         // error label not found
@@ -200,7 +208,7 @@ int handle_command_line_second_pass(symbol_item **symbol_table, char *line, char
     case COMMAND_ADD:
     case COMMAND_SUB:
     case COMMAND_LEA:
-        return handle_two_op_line(symbol_table, command_index, rest_of_line, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+        return handle_two_op_line_second_pass(symbol_table, command_index, rest_of_line, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
         break;
     case COMMAND_CLR:
     case COMMAND_NOT:
@@ -211,7 +219,7 @@ int handle_command_line_second_pass(symbol_item **symbol_table, char *line, char
     case COMMAND_JSR:
     case COMMAND_RED:
     case COMMAND_PRN:
-        return handle_one_op_line(symbol_table, command_index, rest_of_line, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+        return handle_one_op_line_second_pass(symbol_table, command_index, rest_of_line, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
         break;
     case COMMAND_RTS:
     case COMMAND_STOP:
@@ -232,10 +240,10 @@ int handle_no_op_line_second_pass(symbol_item **symbol_table, int command_index,
         return 0;
     }
 
-    return handle_op_line(symbol_table, command_index, NULL, NULL, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+    return handle_op_line_second_pass(symbol_table, command_index, NULL, NULL, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
 }
 
-int handle_one_op_line(symbol_item **symbol_table, int command_index, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+int handle_one_op_line_second_pass(symbol_item **symbol_table, int command_index, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     char *dst;
 
@@ -249,10 +257,10 @@ int handle_one_op_line(symbol_item **symbol_table, int command_index, char *str,
         return 0;
     }
 
-    return handle_op_line(symbol_table, command_index, NULL, dst, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+    return handle_op_line_second_pass(symbol_table, command_index, NULL, dst, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
 }
 
-int handle_two_op_line(symbol_item **symbol_table, int command_index, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+int handle_two_op_line_second_pass(symbol_item **symbol_table, int command_index, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     char *src, *dst;
 
@@ -273,10 +281,10 @@ int handle_two_op_line(symbol_item **symbol_table, int command_index, char *str,
     }
 
     printf("src: %s, dst: %s\n", src, dst);
-    return handle_op_line(symbol_table, command_index, src, dst, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+    return handle_op_line_second_pass(symbol_table, command_index, src, dst, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
 }
 
-int handle_op_line(symbol_item **symbol_table, int command_index, char *src, char *dst, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+int handle_op_line_second_pass(symbol_item **symbol_table, int command_index, char *src, char *dst, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     char *line_binary_code;
     int src_type, dst_type, src_space, dst_space, L = 0;
@@ -297,6 +305,9 @@ int handle_op_line(symbol_item **symbol_table, int command_index, char *src, cha
         return 0;
     }
 
+    L = calculate_space(src_type, dst_type, &src_space, &dst_space);
+    printf("Space size for line: %d\n", L);
+
     /* we already encoded the command line, skip*/
     (*IC)++;
 
@@ -307,11 +318,13 @@ int handle_op_line(symbol_item **symbol_table, int command_index, char *src, cha
         return 1;
     }
 
+    printf("encoding src: %s\n", src);
     if (!encode_second_pass_operands(src, src_type, src_space, IC, array_of_commands, symbol_table, extern_labels, extern_addresses, extern_count))
     {
         return 0;
     }
 
+    printf("encoding dst: %s\n", dst);
     return encode_second_pass_operands(dst, dst_type, dst_space, IC, array_of_commands, symbol_table, extern_labels, extern_addresses, extern_count);
 }
 
@@ -330,7 +343,7 @@ int encode_second_pass_operands(char *op, int type, int space, int *IC, char ***
     }
     else if (type == ALLOCATION_MAT)
     {
-        if (!set_second_pass_mat_allocation_binary_code(op, array_of_commands, *IC, symbol_table, extern_labels, extern_addresses, extern_count))
+        if (!set_second_pass_mat_allocation_binary_code(op, array_of_commands, IC, symbol_table, extern_labels, extern_addresses, extern_count))
         {
             return 0;
         }
@@ -338,7 +351,7 @@ int encode_second_pass_operands(char *op, int type, int space, int *IC, char ***
     else if (type == ALLOCATION_DIRECT)
     {
         op = delete_white_spaces_start_and_end(op);
-        sym = find_symbol_item_by_name(symbol_table, op);
+        sym = find_symbol_item_by_name(*symbol_table, op);
         if (sym == NULL)
         {
             // error symbol not found

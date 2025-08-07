@@ -41,8 +41,8 @@ symbol_item *find_symbol_item_by_name(symbol_item *head, char *name);
 /**
  * @brief update all data (type) symbol items addresses.
  * Adds an integer (ICF) to all data items addresses.
- * @param item symbol item
+ * @param head table head pointer
  * @param ICF an integer to add to all data symbol items
  */
-void update_data_symbol_items_address(symbol_item *head, int ICF);
+void update_data_symbol_items_address(symbol_item **head, int ICF);
 #endif

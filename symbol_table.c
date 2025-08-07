@@ -87,18 +87,19 @@ symbol_item *find_symbol_item_by_name(symbol_item *head, char *name)
     return find_symbol_item_by_name(head->next, name);
 }
 
-void update_data_symbol_items_address(symbol_item *head, int ICF)
+void update_data_symbol_items_address(symbol_item **head, int ICF)
 {
     if (head == NULL)
     {
         return;
     }
 
-    if (strcmp("data", head->type) == 0)
+    if (strcmp("data", (*head)->type) == 0)
     {
-        printf("changing label %s address to %d\n", head->name, head->address + ICF);
-        head->address = head->address + ICF;
+        printf("changing label %s address to %d\n", (*head)->name, (*head)->address + ICF);
+        (*head)->address = (*head)->address + ICF;
     }
 
-    update_data_symbol_items_address(head->next, ICF);
+    if ((*head)->next != NULL)
+        update_data_symbol_items_address(&((*head)->next), ICF);
 }

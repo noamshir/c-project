@@ -10,6 +10,7 @@
 #include "Headers/binary_code.h"
 #include "Headers/guide.h"
 #include "Headers/command.h"
+#include "Headers/second_pass.h"
 
 int first_pass(char *file_name_without_postfix)
 {
@@ -110,29 +111,26 @@ int first_pass(char *file_name_without_postfix)
     DCF = DC;
 
     /*DEBUG*/
-    // loop data array and prints it values
     printf("data array after first pass (%d):\n", DC);
     for (i = 0; i < DC; i++)
     {
         printf("data: %s\n", array_of_data[i]);
     }
 
-    // loop commands array and prints it values
     printf("commands array after first pass (%d):\n", IC);
     for (i = 0; i < IC; i++)
     {
         printf("command: %s\n", array_of_commands[i]);
     }
 
-    update_data_symbol_items_address(symbol_table, IC + MEMORY_START_ADDRESS);
+    update_data_symbol_items_address(&symbol_table, IC + MEMORY_START_ADDRESS);
 
     free(file_name);
-    free(array_of_commands);
-    free(array_of_data);
-    free(symbol_table);
     fclose(file);
 
     printf("first pass finished\n");
+
+    second_pass(file_name_without_postfix, &symbol_table, &array_of_commands, ICF, &array_of_data, DCF);
 
     return 1;
 }

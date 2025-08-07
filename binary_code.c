@@ -213,7 +213,7 @@ char *get_register_allocation_binary_code(char *str)
     }
 
     strcpy(binary_code, get_register_allocation_binary_code_base_4(temp));
-    strcat(binary_code, "r0");
+    strcat(binary_code, get_register_allocation_binary_code_base_4("r0"));
     strcat(binary_code, get_ARE_binary_code(ABSOLUTE_CODE));
 
     printf("register %s binary code: %s\n", str, binary_code);
@@ -279,7 +279,7 @@ int set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_comman
 
 int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_commands, int *IC, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
-    // we only care about the label encode in second pass
+    /* we only care about the label encode in second pass */
     int i = 0, is_external = 0;
     char *temp, label[LABEL_SIZE];
 
@@ -291,8 +291,7 @@ int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_comma
         temp++;
     }
     label[i] = '\0';
-
-    symbol_item *sym = find_symbol_item_by_name(symbol_table, label);
+    symbol_item *sym = find_symbol_item_by_name(*symbol_table, label);
     if (sym == NULL)
     {
         // print_error(PROCESS_ERROR_SYMBOL_NOT_FOUND);

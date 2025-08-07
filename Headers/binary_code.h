@@ -1,3 +1,4 @@
+#include "./symbol_table.h"
 #ifndef BINARY_CODE_H
 #define BINARY_CODE_H
 
@@ -92,4 +93,6 @@ char *get_register_allocations_binary_code(char *src, char *dst);
  * @return 1 if the mat allocation binary codes for the first pass were successfully set in array of commands.
  */
 int set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_commands, int IC);
+
+int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_commands, int *IC, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count);
 #endif

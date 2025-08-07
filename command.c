@@ -224,7 +224,7 @@ int calculate_space(int src_type, int dst_type, int *src_space, int *dst_space)
 
     if (src_type == ALLOCATION_REGISTER && dst_type == ALLOCATION_REGISTER)
     {
-        return L;
+        return L + 1;
     }
 
     /* handle src */
