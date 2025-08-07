@@ -16,7 +16,7 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, ch
     FILE *file;
     char *file_name;
     char line[LINE_SIZE];
-    char *word, *main_op;
+    char *word, *main_op, *label;
     int line_num = 0, error_flag = 0, IC = 0, i;
 
     char **entry_labels = NULL;
@@ -46,6 +46,30 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, ch
         printf("error code is %d\n", PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         free(file_name);
         return;
+    }
+
+    /* allocate entry */
+    entry_labels = malloc(sizeof(char *));
+    if (entry_labels == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+    entry_addresses = malloc(sizeof(int));
+    if (entry_addresses == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+
+    /* allocate extern */
+    extern_labels = malloc(sizeof(char *));
+    if (extern_labels == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+    extern_addresses = malloc(sizeof(int));
+    if (extern_addresses == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
     }
 
     /*pass on each line at the file*/
@@ -83,25 +107,13 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, ch
         /*handle '.entry'*/
         if (is_entry_guide(main_op))
         {
-            char *entry_label = strtok(NULL, " \t\n");
-
-            if (!add_entry_attribute(symbol_table, entry_label))
+            label = strtok(NULL, " \t\n");
+            label = delete_white_spaces_start_and_end(label);
+            if (!handle_entry_guide(label, symbol_table, &entry_labels, &entry_addresses, &entry_count))
             {
                 error_flag = 1;
             }
-            else
-            {
-                // make "entry" list"
-                symbol_item *sym = find_symbol_item_by_name(*symbol_table, entry_label);
-                if (sym != NULL)
-                {
-                    entry_labels = realloc(entry_labels, sizeof(char *) * (entry_count + 1));
-                    entry_addresses = realloc(entry_addresses, sizeof(int) * (entry_count + 1));
-                    entry_labels[entry_count] = strdup(entry_label);
-                    entry_addresses[entry_count] = strcmp(sym->type, "code") == 0 ? MEMORY_START_ADDRESS + sym->address : sym->address;
-                    entry_count++;
-                }
-            }
+            printf("ENTRY COUNT: %d\n", entry_count);
         }
         else
         {
@@ -154,6 +166,42 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, ch
     {
         printf("Second pass finished with errors.\n");
     }
+}
+
+int handle_entry_guide(char *entry_label, symbol_item **symbol_table, char ***entry_labels, int **entry_addresses, int *entry_count)
+{
+    if (!add_entry_attribute(symbol_table, entry_label))
+    {
+        return 0;
+    }
+    else
+    {
+        printf("Adding entry: %s\n", entry_label);
+
+        /* add entry label and address*/
+        symbol_item *sym = find_symbol_item_by_name(*symbol_table, entry_label);
+        if (sym != NULL)
+        {
+            *entry_labels = realloc(*entry_labels, sizeof(char *) * (*entry_count + 1));
+            if (*entry_labels == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+
+            *entry_addresses = realloc(*entry_addresses, sizeof(int) * (*entry_count + 1));
+            if (*entry_addresses == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+
+            /* add label and address */
+            (*entry_labels)[*entry_count] = strdup(entry_label);
+            (*entry_addresses)[*entry_count] = strcmp(sym->type, "code") == 0 ? MEMORY_START_ADDRESS + sym->address : sym->address;
+            (*entry_count)++;
+        }
+    }
+
+    return 1;
 }
 
 int add_entry_attribute(symbol_item **symbol_table, char *entry_label)
