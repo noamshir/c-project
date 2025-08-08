@@ -9,7 +9,7 @@ char *convert_num_to_base4(int num, char *output)
     int output_max_size = 6;
     int i;
     int temp;
-    char digits[32]; /* temporary storage for digits, more than enough */
+    char digits[6]; /* same size of output_max_size */
     int pos = 0;
 
     if (num < 0 || num > 256)
@@ -32,10 +32,6 @@ char *convert_num_to_base4(int num, char *output)
         digits[pos++] = (char)('0' + (temp % 4));
         temp = temp / 4;
     }
-
-    /* check if buffer is big enough */
-    if (output_max_size < pos + 1)
-        return NULL;
 
     /* reverse digits into buffer */
     for (i = 0; i < pos; i++)
