@@ -7,6 +7,8 @@
 int main(int argc, char *argv[])
 {
     char *file_name;
+    mcro_item *mcro_table = NULL;
+
     printf("starting assembler\n");
 
     while (--argc > 0)
@@ -15,14 +17,15 @@ int main(int argc, char *argv[])
         printf("processing file: %s\n", file_name);
 
         /* pre process file */
-        if (!pre_assembler(file_name))
+        if (!pre_assembler(file_name, &mcro_table))
         {
+            free_mcro_table(mcro_table);
             printf("pre process for file: %s failed\n", file_name);
             continue;
         }
 
         /* first pass */
-        if (!first_pass(file_name))
+        if (!first_pass(file_name, &mcro_table))
         {
             continue;
         }

@@ -110,7 +110,7 @@ char *get_allocation_type_binary_code(int allocation_type)
 char *get_direct_allocation_binary_code(char *str)
 {
     int num;
-    char *temp = strdup(str);
+    char *temp = duplicate_str(str);
     char *binary_code = malloc(BINARY_CODE_SIZE);
     if (binary_code == NULL)
     {
@@ -124,7 +124,7 @@ char *get_direct_allocation_binary_code(char *str)
 
 int get_num_from_direct_allocation(char *str)
 {
-    char *temp = strdup(str);
+    char *temp = duplicate_str(str);
     temp = strtok(temp, "#");
     return atoi(temp);
 }
@@ -176,7 +176,7 @@ char *convert_num_to_10_bits(int num)
 char *get_register_allocation_binary_code_base_4(char *str)
 {
     int num;
-    char *temp = strdup(str);
+    char *temp = duplicate_str(str);
     temp = strtok(temp, "r");
     num = atoi(temp);
     switch (num)
@@ -204,7 +204,7 @@ char *get_register_allocation_binary_code_base_4(char *str)
 
 char *get_register_allocation_binary_code(char *str)
 {
-    char *temp = strdup(str);
+    char *temp = duplicate_str(str);
     char *binary_code = malloc(BINARY_CODE_SIZE);
 
     if (binary_code == NULL)
@@ -256,7 +256,7 @@ int set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_comman
         safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
     }
 
-    temp = strdup(str);
+    temp = duplicate_str(str);
     while (*temp != '[')
     {
         temp++;
@@ -284,7 +284,7 @@ int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_comma
     char *temp, label[LABEL_SIZE];
     symbol_item *sym;
 
-    temp = strdup(str);
+    temp = duplicate_str(str);
     while (*temp != '[')
     {
         label[i] = *temp;
@@ -295,7 +295,6 @@ int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_comma
     sym = find_symbol_item_by_name(*symbol_table, label);
     if (sym == NULL)
     {
-        print_error(PROCESS_ERROR_LABEL_NOT_IN_SYMBOL_TABLE);
         return 0;
     }
 
@@ -309,7 +308,7 @@ int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_comma
         (*array_of_commands)[*IC] = convert_num_to_8_bits(sym->address, EXTERNAL_CODE);
         *extern_labels = realloc(*extern_labels, sizeof(char *) * (*extern_count + 1));
         *extern_addresses = realloc(*extern_addresses, sizeof(int) * (*extern_count + 1));
-        (*extern_labels)[*extern_count] = strdup(sym->name);
+        (*extern_labels)[*extern_count] = duplicate_str(sym->name);
         (*extern_addresses)[*extern_count] = *IC + MEMORY_START_ADDRESS;
         (*extern_count)++;
     }

@@ -27,9 +27,10 @@ symbol_item *create_symbol_item(char *name, char *type, int address, int is_entr
  * @param type symbol item type (code, data, ...)
  * @param address an integer representing the symbol item address in memory
  * @param is_entry a boolean that states wether or not the item is an entry.
+ * @param line_number the line number in file.
  * @return 1 if added successfully 0 otherwise
  */
-int add_symbol_item(symbol_item **head, char *name, char *type, int address, int is_entry);
+int add_symbol_item(symbol_item **head, char *name, char *type, int address, int is_entry, int line_number);
 /**
  * @brief finds symbol item by name
  * search the table for a symbol item with the same name as the one received as prop.

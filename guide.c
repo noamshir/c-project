@@ -9,16 +9,16 @@
 #include "Headers/binary_code.h"
 #include "Headers/guide.h"
 
-int handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_data, int *DC)
+int handle_guide_line(symbol_item **symbol_table, char *line, int line_number, char ***array_of_data, int *DC)
 {
     char *guide, *opening_word, *label_name, *guide_declaration;
 
-    opening_word = strtok(strdup(line), " ");
+    opening_word = strtok(duplicate_str(line), " ");
     if (is_label_declaration(opening_word))
     {
         /* get label name (without the :) and add it to symbol table */
         label_name = get_label_name(opening_word);
-        if (!add_symbol_item(symbol_table, label_name, "data", *DC, 0))
+        if (!add_symbol_item(symbol_table, label_name, "data", *DC, 0, line_number))
         {
             return 0;
         }
@@ -29,7 +29,7 @@ int handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_d
     else
     {
         /* first word in line must be the guide (.data/.string/...)*/
-        guide = strdup(opening_word);
+        guide = duplicate_str(opening_word);
     }
 
     /* guide declaration is everything after the guide type until the end of the line */
@@ -37,15 +37,15 @@ int handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_d
 
     if (is_data_guide(guide))
     {
-        return handle_data_guide(guide_declaration, array_of_data, DC);
+        return handle_data_guide(guide_declaration, line_number, array_of_data, DC);
     }
     else if (is_string_guide(guide))
     {
-        return handle_string_guide(guide_declaration, array_of_data, DC);
+        return handle_string_guide(guide_declaration, line_number, array_of_data, DC);
     }
     else if (is_mat_guide(guide))
     {
-        return handle_mat_guide(guide_declaration, array_of_data, DC);
+        return handle_mat_guide(guide_declaration, line_number, array_of_data, DC);
     }
     else
     {
@@ -54,17 +54,17 @@ int handle_guide_line(symbol_item **symbol_table, char *line, char ***array_of_d
     }
 }
 
-int handle_data_guide(char *guide_declaration, char ***array_of_data, int *DC)
+int handle_data_guide(char *guide_declaration, int line_number, char ***array_of_data, int *DC)
 {
     /* check that guide_declaration is of type: "num1, num2, ...., numn" */
     char *str, *temp;
     int num;
     int i = 0;
 
-    temp = strdup(guide_declaration);
+    temp = duplicate_str(guide_declaration);
     if (!is_data_guide_declaration(temp))
     {
-        print_error(PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM);
+        print_line_error(PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM, line_number);
         return 0;
     }
 
@@ -90,7 +90,7 @@ int handle_data_guide(char *guide_declaration, char ***array_of_data, int *DC)
         /* should check if num is integer */
         if (!is_integer(str))
         {
-            print_error(PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM);
+            print_line_error(PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM, line_number);
             return 0;
         }
 
@@ -111,16 +111,16 @@ int handle_data_guide(char *guide_declaration, char ***array_of_data, int *DC)
     return 1;
 }
 
-int handle_string_guide(char *guide_declaration, char ***array_of_data, int *DC)
+int handle_string_guide(char *guide_declaration, int line_number, char ***array_of_data, int *DC)
 {
     /* check that line is of type: "label: .string "string"" */
     int i = 0;
     char *temp, c;
 
-    temp = strdup(guide_declaration);
+    temp = duplicate_str(guide_declaration);
     if (temp == NULL)
     {
-        print_error(PROCESS_ERROR_STRING_GUIDE_INVALID_PARAM);
+        print_line_error(PROCESS_ERROR_STRING_GUIDE_INVALID_PARAM, line_number);
         return 0;
     }
 
@@ -128,8 +128,8 @@ int handle_string_guide(char *guide_declaration, char ***array_of_data, int *DC)
     temp = delete_white_spaces_start_and_end(temp);
     if (temp[0] != '\"' || temp[strlen(temp) - 1] != '\"')
     {
-        /* temi is not of type "something" */
-        print_error(PROCESS_ERROR_STRING_GUIDE_INVALID_PARAM);
+        /* temp is not of type "something" */
+        print_line_error(PROCESS_ERROR_STRING_GUIDE_INVALID_PARAM, line_number);
         return 0;
     }
 
@@ -162,17 +162,17 @@ int handle_string_guide(char *guide_declaration, char ***array_of_data, int *DC)
     return 1;
 }
 
-int handle_mat_guide(char *guide_declaration, char ***array_of_data, int *DC)
+int handle_mat_guide(char *guide_declaration, int line_number, char ***array_of_data, int *DC)
 {
     /* check that line is of type: "label: .mat [num1][num2] optional numbers separated by comma */
     char *str, *temp;
     int num, rows, cols;
     int i = 0;
 
-    temp = strdup(guide_declaration);
+    temp = duplicate_str(guide_declaration);
     if (temp == NULL)
     {
-        print_error(PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM);
+        print_line_error(PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM, line_number);
         return 0;
     }
 
@@ -180,14 +180,14 @@ int handle_mat_guide(char *guide_declaration, char ***array_of_data, int *DC)
 
     if (!is_mat_declaration(temp))
     {
-        print_error(PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM);
+        print_line_error(PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM, line_number);
         return 0;
     }
 
     /* populate the rows and cols vars */
     if (!set_rows_and_cols_from_mat_declaration(temp, &rows, &cols))
     {
-        print_error(PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM);
+        print_line_error(PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM, line_number);
         return 0;
     }
 
@@ -207,7 +207,7 @@ int handle_mat_guide(char *guide_declaration, char ***array_of_data, int *DC)
         {
             if (!is_integer(str))
             {
-                print_error(PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM);
+                print_line_error(PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM, line_number);
                 return 0;
             }
             num = atoi(str);
@@ -227,7 +227,7 @@ int handle_mat_guide(char *guide_declaration, char ***array_of_data, int *DC)
     if (str != NULL)
     {
         /* more params than space in mat */
-        print_error(PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM);
+        print_line_error(PROCESS_ERROR_MAT_GUIDE_INVALID_PARAM, line_number);
         return 0;
     }
 
@@ -309,31 +309,31 @@ int set_rows_and_cols_from_mat_declaration(char *guide_declaration, int *rows, i
     return 1;
 }
 
-int handle_extern_guide_line(symbol_item **symbol_table, char *line)
+int handle_extern_guide_line(symbol_item **symbol_table, char *line, int line_number)
 {
     /* check that line is of type: "label: .extern extern label" */
     char *word, *next_word;
 
-    word = strtok(strdup(line), " ");
+    word = strtok(duplicate_str(line), " ");
     if (is_label_declaration(word))
     {
         word = strtok(NULL, " ");
         if (!is_extern_guide(word))
         {
-            print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+            print_line_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION, line_number);
             return 0;
         }
     }
     else if (!is_extern_guide(word))
     {
-        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        print_line_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION, line_number);
         return 0;
     }
 
     next_word = strtok(NULL, "\n");
     if (next_word == NULL)
     {
-        print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
+        print_line_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION, line_number);
         return 0;
     }
 
@@ -341,17 +341,17 @@ int handle_extern_guide_line(symbol_item **symbol_table, char *line)
     next_word = delete_white_spaces_start_and_end(next_word);
     if (!is_valid_label_name(next_word))
     {
-        print_error(PROCESS_ERROR_INVALID_EXTERN_LABEL_NAME);
+        print_line_error(PROCESS_ERROR_INVALID_EXTERN_LABEL_NAME, line_number);
         return 0;
     }
-    return add_symbol_item(symbol_table, next_word, "external", 0, 0);
+    return add_symbol_item(symbol_table, next_word, "external", 0, 0, line_number);
 }
 
-int handle_entry_guide(char *entry_label, symbol_item **symbol_table, char ***entry_labels, int **entry_addresses, int *entry_count)
+int handle_entry_guide(char *entry_label, int line_number, symbol_item **symbol_table, char ***entry_labels, int **entry_addresses, int *entry_count)
 {
     symbol_item *sym;
 
-    if (!add_entry_attribute(symbol_table, entry_label))
+    if (!add_entry_attribute(symbol_table, entry_label, line_number))
     {
         return 0;
     }
@@ -376,7 +376,7 @@ int handle_entry_guide(char *entry_label, symbol_item **symbol_table, char ***en
             }
 
             /* add label and address */
-            (*entry_labels)[*entry_count] = strdup(entry_label);
+            (*entry_labels)[*entry_count] = duplicate_str(entry_label);
             (*entry_addresses)[*entry_count] = strcmp(sym->type, "code") == 0 ? MEMORY_START_ADDRESS + sym->address : sym->address;
             (*entry_count)++;
         }
@@ -385,18 +385,18 @@ int handle_entry_guide(char *entry_label, symbol_item **symbol_table, char ***en
     return 1;
 }
 
-int add_entry_attribute(symbol_item **symbol_table, char *entry_label)
+int add_entry_attribute(symbol_item **symbol_table, char *entry_label, int line_number)
 {
     symbol_item *curr = find_symbol_item_by_name(*symbol_table, entry_label);
     if (curr == NULL)
     {
-        print_error(PROCESS_ERROR_LABEL_NOT_IN_SYMBOL_TABLE);
+        print_line_error(PROCESS_ERROR_LABEL_NOT_IN_SYMBOL_TABLE, line_number);
         return 0;
     }
 
     if (strcmp(curr->type, "external") == 0)
     {
-        print_error(PROCESS_ERROR_ENTRY_GUIDE_CANT_BE_EXTERNAL);
+        print_line_error(PROCESS_ERROR_ENTRY_GUIDE_CANT_BE_EXTERNAL, line_number);
         return 0;
     }
 

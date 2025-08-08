@@ -86,7 +86,7 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, ch
         }
 
         /*get the first word in the line*/
-        word = strtok(strdup(line), " ");
+        word = strtok(duplicate_str(line), " ");
         word = delete_white_spaces_start_and_end(word);
 
         /*ignore lables words and save the command in param*/
@@ -97,7 +97,7 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, ch
         }
         else
         {
-            main_op = strdup(word);
+            main_op = duplicate_str(word);
         }
 
         /* check if the word is a guide that handled in first pass */
@@ -111,7 +111,7 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, ch
         {
             label = strtok(NULL, " \t\n");
             label = delete_white_spaces_start_and_end(label);
-            if (!handle_entry_guide(label, symbol_table, &entry_labels, &entry_addresses, &entry_count))
+            if (!handle_entry_guide(label, line_num, symbol_table, &entry_labels, &entry_addresses, &entry_count))
             {
                 error_flag = 1;
             }
@@ -119,7 +119,7 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, ch
         else
         {
             /*if it's command line, maybe we need to encode some of its operands */
-            handle_command_line_second_pass(symbol_table, line, array_of_commands, &IC, &extern_labels, &extern_addresses, &extern_count);
+            handle_command_line_second_pass(symbol_table, line, line_num, array_of_commands, &IC, &extern_labels, &extern_addresses, &extern_count);
         }
     }
 

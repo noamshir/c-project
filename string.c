@@ -70,6 +70,29 @@ char *delete_white_spaces_start_and_end(char *str)
     return str;
 }
 
+char *duplicate_str(char *str)
+{
+    char *copy;
+    int len = 0;
+
+    if (str == NULL)
+    {
+        return NULL;
+    }
+
+    len = strlen(str) + 1;
+
+    /* Allocate memory (+1 for null terminator) */
+    copy = malloc(len + 1);
+    if (copy == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+
+    strcpy(copy, str);
+    return copy;
+}
+
 int is_integer(char *str)
 {
     int i = 0;
@@ -127,7 +150,7 @@ int is_line_too_long(char *line)
 
 char *get_file_name_without_extension(char *file_name)
 {
-    char *temp = strdup(file_name);
+    char *temp = duplicate_str(file_name);
     char *dot_pt = strchr(temp, '.');
     if (dot_pt != NULL)
     {
@@ -189,6 +212,15 @@ int is_mcro_name_valid(char *name)
     if (is_command(name) || is_guide(name))
     {
         return 0;
+    }
+
+    while (*name != '\0')
+    {
+        if (!is_char_alphabetical_or_digit(*name) && *name != '_')
+        {
+            return 0;
+        }
+        name++;
     }
 
     return 1;
@@ -309,7 +341,7 @@ int is_data_guide_declaration(char *guide_declaration)
     /* check that guide_declaration is of type: "num1, num2, ...., numn" */
     printf("checking data guide declaration: %s\n", guide_declaration);
 
-    temp = strdup(guide_declaration);
+    temp = duplicate_str(guide_declaration);
     temp = delete_white_spaces_start_and_end(temp);
     if (temp == NULL)
     {
@@ -326,7 +358,7 @@ int is_data_guide_declaration(char *guide_declaration)
         return 0;
     }
 
-    num = strtok(strdup(temp), ",");
+    num = strtok(duplicate_str(temp), ",");
     num = delete_white_spaces_start_and_end(num);
     if (num == NULL || !is_integer(num))
     {
@@ -354,7 +386,7 @@ int is_mat_declaration(char *guide_declaration)
 {
     /* check that next word is [num1][num2] and optional (num1, num2...) */
     char *temp;
-    temp = strdup(guide_declaration);
+    temp = duplicate_str(guide_declaration);
     temp = strtok(temp, " ");
 
     if (temp == NULL || strlen(temp) == 0)
@@ -532,7 +564,7 @@ int is_mat_allocation(char *word)
     }
 
     label = malloc(1);
-    temp = strdup(word);
+    temp = duplicate_str(word);
     while (*temp != '[')
     {
         i++;
@@ -553,7 +585,7 @@ int is_mat_allocation(char *word)
     }
     free(label);
 
-    mat_def = strdup(temp);
+    mat_def = duplicate_str(temp);
     return set_regs_from_mat_allocation(mat_def, reg1, reg2);
 }
 
@@ -567,7 +599,7 @@ int set_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)
         return 0;
     }
 
-    temp = strdup(mat_def);
+    temp = duplicate_str(mat_def);
     /* loop the first [reg] and check if valid */
     for (temp = mat_def + 1; *temp != ']'; temp++)
     {

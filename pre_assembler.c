@@ -7,11 +7,10 @@
 #include "Headers/error.h"
 #include "Headers/consts.h"
 
-int pre_assembler(char *file_name_without_postfix)
+int pre_assembler(char *file_name_without_postfix, mcro_item **mcro_table)
 {
     FILE *as_fp, *am_fp;
     char *am_file_name, *as_file_name;
-    mcro_item *mcro_table = NULL;
 
     printf("pre assembler started\n");
 
@@ -29,15 +28,13 @@ int pre_assembler(char *file_name_without_postfix)
     as_fp = fopen(as_file_name, "r");
     if (as_fp == NULL)
     {
-        free_mcro_table(mcro_table);
         free(as_file_name);
         print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return 0;
     }
 
-    if (!fill_mcro_table(as_fp, &mcro_table))
+    if (!fill_mcro_table(as_fp, mcro_table))
     {
-        free_mcro_table(mcro_table);
         free(as_file_name);
         fclose(as_fp);
         return 0;
@@ -55,7 +52,6 @@ int pre_assembler(char *file_name_without_postfix)
     am_fp = fopen(am_file_name, "w+");
     if (am_fp == NULL)
     {
-        free_mcro_table(mcro_table);
         fclose(as_fp);
         free(as_file_name);
         free(am_file_name);
@@ -69,17 +65,15 @@ int pre_assembler(char *file_name_without_postfix)
     fclose(am_fp);
     fclose(as_fp);
 
-    if (!replace_mcro_defines(&mcro_table, am_file_name))
+    if (!replace_mcro_defines(mcro_table, am_file_name))
     {
-        free_mcro_table(mcro_table);
         free(as_file_name);
         free(am_file_name);
         fclose(as_fp);
         return 0;
     }
 
-    /* free file names & mcro table */
-    free_mcro_table(mcro_table);
+    /* free file names */
     free(as_file_name);
     free(am_file_name);
     printf("pre assembler finished\n");
@@ -106,7 +100,7 @@ int fill_mcro_table(FILE *file, mcro_item **mcro_table)
             return 0;
         }
 
-        first_word = strtok(strdup(line), " ");
+        first_word = strtok(duplicate_str(line), " ");
         first_word = delete_white_spaces_start_and_end(first_word);
 
         /* checks if the first word is mcro declaration */
@@ -132,7 +126,7 @@ int fill_mcro_table(FILE *file, mcro_item **mcro_table)
             }
 
             /* if we got here mcro declaration is valid, add it to the mcro table! */
-            current_mcro = add_mcro_item(mcro_table, strdup(second_word), NULL);
+            current_mcro = add_mcro_item(mcro_table, duplicate_str(second_word), NULL);
             continue;
         }
         /* checks if the first word is mcroend declaration */

@@ -5,9 +5,10 @@
  * process the file (which name is received as param) line by line and replace mcro defines.
  *
  * @param file_name_without_postfix A pointer to the file name (without the .as postfix).
+ * @param mcro_table A pointer to the mcro table.
  * @return 1 if the file pre process was handled successfully, 0 otherwise.
  */
-int pre_assembler(char *file_name_without_postfix);
+int pre_assembler(char *file_name_without_postfix, mcro_item **mcro_table);
 /**
  * @brief fill mcro table.
  * process the file (which is received as param) line by line and adds mcro definitions to mcro table

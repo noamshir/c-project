@@ -4,15 +4,15 @@
 #include "Headers/string.h"
 #include "Headers/error.h"
 #include "Headers/symbol_table.h"
+#include "Headers/mcro_table.h"
 #include "Headers/first_pass.h"
 #include "Headers/utils.h"
 #include "Headers/consts.h"
-#include "Headers/binary_code.h"
 #include "Headers/guide.h"
 #include "Headers/command.h"
 #include "Headers/second_pass.h"
 
-int first_pass(char *file_name_without_postfix)
+int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
 {
     int IC = 0, DC = 0, ICF, DCF, line_num = 0, i = 0, is_line_valid = 0, has_errors = 0;
     char *file_name, line[LINE_SIZE], *first_word_in_line, *main_op, **array_of_commands = NULL, **array_of_data = NULL;
@@ -56,25 +56,30 @@ int first_pass(char *file_name_without_postfix)
             continue;
         }
 
-        first_word_in_line = strtok(strdup(line), " ");
+        first_word_in_line = strtok(duplicate_str(line), " ");
         if (is_label_declaration(first_word_in_line))
         {
+            if (find_mcro_item_by_name(*mcro_table, first_word_in_line) != NULL)
+            {
+                print_line_error(PROCESS_ERROR_LABEL_AS_MACRO, line_num);
+                continue;
+            }
             /* if the first word is label than the second one is the command or the guide */
             main_op = strtok(NULL, " ");
         }
         else
         {
             /* if the first word isn't a label it must be the command or the guide */
-            main_op = strdup(first_word_in_line);
+            main_op = duplicate_str(first_word_in_line);
         }
 
         if (is_data_guide(main_op) || is_string_guide(main_op) || is_mat_guide(main_op))
         {
-            is_line_valid = handle_guide_line(&symbol_table, line, &array_of_data, &DC);
+            is_line_valid = handle_guide_line(&symbol_table, line, line_num, &array_of_data, &DC);
         }
         else if (is_extern_guide(main_op))
         {
-            is_line_valid = handle_extern_guide_line(&symbol_table, line);
+            is_line_valid = handle_extern_guide_line(&symbol_table, line, line_num);
         }
         else if (is_entry_guide(main_op))
         {
@@ -84,12 +89,11 @@ int first_pass(char *file_name_without_postfix)
         else
         {
             /* not all the above? must be a command line */
-            is_line_valid = handle_command_line_first_pass(&symbol_table, line, &array_of_commands, &IC);
+            is_line_valid = handle_command_line_first_pass(&symbol_table, line, line_num, &array_of_commands, &IC);
         }
 
         if (!is_line_valid)
         {
-            printf("Error in line %d\n", line_num);
             has_errors = 1;
         }
 

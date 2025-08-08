@@ -3,6 +3,7 @@
 #include <string.h>
 #include "Headers/mcro_table.h"
 #include "Headers/error.h"
+#include "Headers/string.h"
 
 mcro_item *create_mcro_item(char *name, char *value)
 {
@@ -58,7 +59,7 @@ void append_string_to_mcro_item_value(mcro_item *item, char *value)
         {
             safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
-        strcpy(item->value, strdup(value));
+        strcpy(item->value, duplicate_str(value));
     }
     else
     {
@@ -70,7 +71,7 @@ void append_string_to_mcro_item_value(mcro_item *item, char *value)
             safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
         item->value = temp;
-        strcat(item->value, strdup(value));
+        strcat(item->value, duplicate_str(value));
     }
 }
 

@@ -8,6 +8,12 @@
  */
 char *delete_white_spaces_start_and_end(char *str);
 /**
+ * duplicate a string.
+ * @param str - the string we want to duplicate.
+ * @return the string duplicated.
+ */
+char *duplicate_str(char *str);
+/**
  * checks if a string is an integer (including +\-).
  * @param str - the string to check.
  * @return 1 if the string represent an integer, 0 otherwise.
