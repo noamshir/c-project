@@ -1,4 +1,4 @@
 #ifndef UTILS_H
 #define UTILS_H
-int is_integer(char *str);
+void free_array_of_strings(char **array, int length);
 #endif

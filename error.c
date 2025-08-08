@@ -37,6 +37,9 @@ void print_error(int error_code)
     case PROCESS_ERROR_GUIDE_AS_LABEL:
         printf("guide as label\n");
         break;
+    case PROCESS_ERROR_REGISTER_AS_LABEL:
+        printf("register as label\n");
+        break;
     case PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM:
         printf("data guide invalid param\n");
         break;
@@ -64,8 +67,16 @@ void print_error(int error_code)
     case PROCESS_ERROR_MAT_ALLOCATION_INVALID_PARAM:
         printf("mat allocation invalid param\n");
         break;
+    case PROCESS_ERROR_ENTRY_GUIDE_CANT_BE_EXTERNAL:
+        printf("entry guide cant be external\n");
+        break;
+    case PROCESS_ERROR_LABEL_NOT_IN_SYMBOL_TABLE:
+        printf("label not in symbol table\n");
     case PROCESS_ERROR_SYMBOL_ALREADY_EXISTS:
         printf("symbol already exists\n");
+        break;
+    case PROCESS_ERROR_LABEL_AS_MACRO:
+        printf("label name can't be a macro name\n");
         break;
 
     default:
@@ -78,4 +89,10 @@ void safe_exit(int error_code)
 {
     print_error(error_code);
     exit(error_code);
+}
+
+void print_line_error(int error_code, int line_num)
+{
+    printf("Error in line %d: ", line_num);
+    print_error(error_code);
 }

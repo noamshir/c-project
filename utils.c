@@ -1,34 +1,12 @@
 #include <stdio.h>
-#include <string.h>
-#include "Headers/string.h"
+#include <stdlib.h>
 
-int is_integer(char *str)
+void free_array_of_strings(char **array, int length)
 {
-    if (str == NULL)
+    int i;
+    for (i = 0; i < length; i++)
     {
-        return 0;
+        free(array[i]);
     }
-
-    if (strlen(str) == 0)
-    {
-        return 0;
-    }
-
-    int i = 0;
-    // check for signs
-    if (str[0] == '+' || str[0] == '-')
-    {
-        i = 1;
-    }
-
-    for (; str[i] != '\0'; i++)
-    {
-        if (!is_char_digit(str[i]))
-        {
-            // one char is not a digit, string isnt a number
-            return 0;
-        }
-    }
-
-    return 1;
+    free(array);
 }

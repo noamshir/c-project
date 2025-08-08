@@ -7,6 +7,8 @@
  * and decides its type (guide line, command line) and handles it.
  *
  * @param file_name_without_postfix A pointer to the file name (without the .am postfix).
+ * @param mcro_table A pointer to the mcro table.
+ * @return 1 if successfully processed the file, 0 otherwise.
  */
-void first_pass(char *file_name_without_postfix);
+int first_pass(char *file_name_without_postfix, mcro_item **mcro_table);
 #endif

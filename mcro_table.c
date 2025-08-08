@@ -3,6 +3,7 @@
 #include <string.h>
 #include "Headers/mcro_table.h"
 #include "Headers/error.h"
+#include "Headers/string.h"
 
 mcro_item *create_mcro_item(char *name, char *value)
 {
@@ -58,7 +59,7 @@ void append_string_to_mcro_item_value(mcro_item *item, char *value)
         {
             safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
-        strcpy(item->value, strdup(value));
+        strcpy(item->value, duplicate_str(value));
     }
     else
     {
@@ -70,7 +71,7 @@ void append_string_to_mcro_item_value(mcro_item *item, char *value)
             safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
         item->value = temp;
-        strcat(item->value, strdup(value));
+        strcat(item->value, duplicate_str(value));
     }
 }
 
@@ -81,8 +82,6 @@ mcro_item *find_mcro_item_by_name(mcro_item *head, char *name)
         return NULL;
     }
 
-    printf("comparing %s to %s\n", name, head->name);
-
     if (strcmp(name, head->name) == 0)
     {
         printf("found %s\n", name);
@@ -90,4 +89,19 @@ mcro_item *find_mcro_item_by_name(mcro_item *head, char *name)
     }
 
     return find_mcro_item_by_name(head->next, name);
+}
+
+void free_mcro_table(mcro_item *head)
+{
+    if (head == NULL)
+    {
+        return;
+    }
+
+    if (head->next != NULL)
+        free_mcro_table(head->next);
+
+    free(head->name);
+    free(head->value);
+    free(head);
 }
