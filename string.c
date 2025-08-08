@@ -238,6 +238,12 @@ int is_valid_label_name(char *str)
         return 0;
     }
 
+    /* label can't be command, guide or register */
+    if (is_command(str) || is_guide(str) || is_register(str))
+    {
+        return 0;
+    }
+
     while (*str != '\0')
     {
         if (!is_char_alphabetical_or_digit(*str))

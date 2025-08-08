@@ -37,6 +37,9 @@ void print_error(int error_code)
     case PROCESS_ERROR_GUIDE_AS_LABEL:
         printf("guide as label\n");
         break;
+    case PROCESS_ERROR_REGISTER_AS_LABEL:
+        printf("register as label\n");
+        break;
     case PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM:
         printf("data guide invalid param\n");
         break;

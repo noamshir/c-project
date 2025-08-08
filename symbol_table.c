@@ -34,6 +34,11 @@ int add_symbol_item(symbol_item **head, char *name, char *type, int address, int
         print_line_error(PROCESS_ERROR_GUIDE_AS_LABEL, line_number);
         return 0;
     }
+    else if (is_register(name))
+    {
+        print_line_error(PROCESS_ERROR_REGISTER_AS_LABEL, line_number);
+        return 0;
+    }
 
     item = create_symbol_item(name, type, address, is_entry);
 
