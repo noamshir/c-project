@@ -264,6 +264,7 @@ int set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_comman
     (*array_of_commands)[IC] = NULL;
     IC++;
 
+    /* temp is now [reg1][reg2] (without the label) */
     /* set registers from mat encode */
     valid = set_regs_from_mat_allocation(temp, reg1, reg2);
     if (!valid)
@@ -284,6 +285,7 @@ int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_comma
     char *temp, label[LABEL_SIZE];
     symbol_item *sym;
 
+    /* build label from mat allocation */
     temp = duplicate_str(str);
     while (*temp != '[')
     {
@@ -292,6 +294,7 @@ int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_comma
         temp++;
     }
     label[i] = '\0';
+
     sym = find_symbol_item_by_name(*symbol_table, label);
     if (sym == NULL)
     {

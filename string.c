@@ -534,7 +534,7 @@ int is_mat_allocation(char *word)
 {
     /* check that next word is [reg1][reg2] */
     int i = 0;
-    char *label, *mat_def, *temp, *reg1, *reg2;
+    char label[LABEL_SIZE], *mat_def, *temp, *reg1, *reg2;
     if (word == NULL)
     {
         return 0;
@@ -563,28 +563,23 @@ int is_mat_allocation(char *word)
         return 0;
     }
 
-    label = malloc(1);
+    /* build label from mat allocation */
     temp = duplicate_str(word);
     while (*temp != '[')
     {
+        label[i] = *temp;
         i++;
-        label = realloc(label, i);
-        if (label == NULL)
-        {
-            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-        }
-        label[i - 1] = *temp;
         temp++;
     }
+    label[i] = '\0';
 
     i = 0;
     if (!is_valid_label_name(label))
     {
-        free(label);
         return 0;
     }
-    free(label);
 
+    /* temp is now [reg1][reg2] (without the label) */
     mat_def = duplicate_str(temp);
     return set_regs_from_mat_allocation(mat_def, reg1, reg2);
 }

@@ -178,7 +178,7 @@ int is_immediate_allocation(char *word);
 int is_mat_allocation(char *word);
 /**
  * extract registers from the mat allocation definition and set them in the pointers received as props.
- * @param mat_def - the string representing the mat allocation definition.
+ * @param mat_def - the string representing the mat allocation definition (without the label - [reg1][reg2]).
  * @param reg1 - a string to put the first register value in.
  * @param reg2 - a string to put the second register value in.
  * @return - 1 if we extracted the regs successfully, 0 otherwise.

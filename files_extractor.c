@@ -11,7 +11,7 @@ void generate_ob_file(char *name, char ***code, int code_length, char ***data, i
     char file_name[256];
     int i; /*parameter for loops*/
     int address_counter = MEMORY_START_ADDRESS;
-    char abcd_binary_code[6], abcd_address_code[5], abcd_code_length_code[5], abcd_data_length_code[5];
+    char abcd_binary_code[6], abcd_address_code[6], abcd_code_length_code[6], abcd_data_length_code[6];
 
     printf("generating ob file\n");
     printf("code length: %d, data length: %d\n", code_length, data_length);
