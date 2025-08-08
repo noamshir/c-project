@@ -72,9 +72,10 @@ char *get_register_allocation_binary_code_base_4(char *str);
  * This function gets a string representing a register allocation,
  * and builds its 10 bits binary code (register type 4 base plus 6 zeros).
  * @param str a string representing a register allocation.
+ * @param is_src a boolean flag, 1 indicates op is src, 0 dst.
  * @return a string representing the binary code for the register allocation (str) received as param.
  */
-char *get_register_allocation_binary_code(char *str);
+char *get_register_allocation_binary_code(char *str, int is_src);
 /**
  * @brief get register allocations binary code.
  * This function gets 2 strings representing the src ans dst operands,

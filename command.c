@@ -180,15 +180,15 @@ int handle_op_line_first_pass(int command_index, int line_number, char *src, cha
         return 1;
     }
 
-    if (!encode_first_pass_operands(src, src_type, src_space, line_number, IC, array_of_commands))
+    if (!encode_first_pass_operands(src, src_type, src_space, line_number, 1, IC, array_of_commands))
     {
         return 0;
     }
 
-    return encode_first_pass_operands(dst, dst_type, dst_space, line_number, IC, array_of_commands);
+    return encode_first_pass_operands(dst, dst_type, dst_space, line_number, 0, IC, array_of_commands);
 }
 
-int encode_first_pass_operands(char *op, int type, int space, int line_number, int *IC, char ***array_of_commands)
+int encode_first_pass_operands(char *op, int type, int space, int line_number, int is_src, int *IC, char ***array_of_commands)
 {
     if (type == ALLOCATION_MISSING)
     {
@@ -196,7 +196,7 @@ int encode_first_pass_operands(char *op, int type, int space, int line_number, i
     }
     else if (type == ALLOCATION_REGISTER)
     {
-        (*array_of_commands)[*IC] = get_register_allocation_binary_code(op);
+        (*array_of_commands)[*IC] = get_register_allocation_binary_code(op, is_src);
     }
     else if (type == ALLOCATION_MAT)
     {

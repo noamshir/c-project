@@ -69,11 +69,12 @@ int handle_op_line_first_pass(int command_index, int line_number, char *src, cha
  * @param type the index representing the operand.
  * @param space the space (num of lines) the operand should take in array of commands.
  * @param line_number the line number in file.
+ * @param is_src a boolean flag, 1 indicates op is src, 0 dst.
  * @param array_of_commands a pointer to the array of commands.
  * @param IC a pointer to an integer counting the command items.
  * @return 1 if the encoding was successful, 0 otherwise.
  */
-int encode_first_pass_operands(char *op, int type, int space, int line_number, int *IC, char ***array_of_commands);
+int encode_first_pass_operands(char *op, int type, int space, int line_number, int is_src, int *IC, char ***array_of_commands);
 
 int handle_command_line_second_pass(symbol_item **symbol_table, char *line, int line_number, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
 int handle_no_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);

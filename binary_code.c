@@ -202,7 +202,7 @@ char *get_register_allocation_binary_code_base_4(char *str)
     return NULL;
 }
 
-char *get_register_allocation_binary_code(char *str)
+char *get_register_allocation_binary_code(char *str, int is_src)
 {
     char *temp = duplicate_str(str);
     char *binary_code = malloc(BINARY_CODE_SIZE);
@@ -212,8 +212,17 @@ char *get_register_allocation_binary_code(char *str)
         safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
     }
 
-    strcpy(binary_code, get_register_allocation_binary_code_base_4(temp));
-    strcat(binary_code, get_register_allocation_binary_code_base_4("r0"));
+    if (is_src)
+    {
+        strcpy(binary_code, get_register_allocation_binary_code_base_4(temp));
+        strcat(binary_code, get_register_allocation_binary_code_base_4("r0"));
+    }
+    else
+    {
+        strcpy(binary_code, get_register_allocation_binary_code_base_4("r0"));
+        strcat(binary_code, get_register_allocation_binary_code_base_4(temp));
+    }
+
     strcat(binary_code, get_ARE_binary_code(ABSOLUTE_CODE));
 
     printf("register %s binary code: %s\n", str, binary_code);
