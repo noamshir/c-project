@@ -39,7 +39,9 @@ void append_string_to_mcro_item_value(mcro_item *item, char *value);
  * @return the mcro item we searched or NULL
  */
 mcro_item *find_mcro_item_by_name(mcro_item *head, char *name);
-
+/**
+ * @brief free mcro table.
+ * @param head table head pointer
+ */
 void free_mcro_table(mcro_item *head);
-
 #endif
