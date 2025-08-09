@@ -7,8 +7,7 @@
 void convert_num_to_abcd_base(int num, char *output)
 {
     /* we support only numbers between 0-256 (addresses and array sizes for addresses)*/
-    int i, temp;
-    char digit, digits[6]; /* numbers between 0-256 is max size 6 in base 4 */
+    int i, temp, digits[6];
     int length = 0;
 
     if (num < 0 || num > 256)
@@ -26,15 +25,14 @@ void convert_num_to_abcd_base(int num, char *output)
     temp = num;
     while (temp > 0)
     {
-        digits[length++] = (char)('0' + (temp % 4));
+        digits[length++] = temp % 4;
         temp = temp / 4;
     }
 
     /* reverse digits into buffer */
     for (i = 0; i < length; i++)
     {
-        digit = digits[length - 1 - i];
-        output[i] = convert_digit_to_abcd_base(digit);
+        output[i] = 'a' + digits[length - i - 1]; /* a asci value + the digit (0,1,2,3) */
     }
     output[length] = '\0';
 
@@ -55,21 +53,4 @@ void convert_binary_code_to_abcd_base(unsigned int binary_code, char *output)
         output[i] = 'a' + two_bits; /* a asci value + the digit (0,1,2,3)  */
     }
     output[5] = '\0';
-}
-
-char convert_digit_to_abcd_base(char digit)
-{
-    switch (digit)
-    {
-    case '0':
-        return 'a';
-    case '1':
-        return 'b';
-    case '2':
-        return 'c';
-    case '3':
-        return 'd';
-    default:
-        return '\0';
-    }
 }
