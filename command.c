@@ -10,7 +10,7 @@
 #include "Headers/command.h"
 
 /* FIRST PASS */
-int handle_command_line_first_pass(symbol_item **symbol_table, char *line, int line_number, char ***array_of_commands, int *IC)
+int handle_command_line_first_pass(symbol_item **symbol_table, char *line, int line_number, unsigned int *array_of_commands, int *IC)
 {
     char *command, *label, *label_name, *rest_of_line;
     int command_index;
@@ -19,7 +19,7 @@ int handle_command_line_first_pass(symbol_item **symbol_table, char *line, int l
     if (is_label_declaration(label))
     {
         label_name = get_label_name(label);
-        if (!add_symbol_item(symbol_table, label_name, "code", *IC, 0, line_number))
+        if (!add_symbol_item(symbol_table, label_name, CODE_SYMBOL, *IC, 0, line_number))
         {
             return 0;
         }
@@ -71,7 +71,7 @@ int handle_command_line_first_pass(symbol_item **symbol_table, char *line, int l
     }
 }
 
-int handle_no_op_line_first_pass(int command_index, int line_number, char *str, char ***array_of_commands, int *IC)
+int handle_no_op_line_first_pass(int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC)
 {
     /* ensure str is empty (no operands) */
     if (!is_empty_line(str))
@@ -83,7 +83,7 @@ int handle_no_op_line_first_pass(int command_index, int line_number, char *str, 
     return handle_op_line_first_pass(command_index, line_number, NULL, NULL, array_of_commands, IC);
 }
 
-int handle_one_op_line_first_pass(int command_index, int line_number, char *str, char ***array_of_commands, int *IC)
+int handle_one_op_line_first_pass(int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC)
 {
     char *dst;
 
@@ -100,7 +100,7 @@ int handle_one_op_line_first_pass(int command_index, int line_number, char *str,
     return handle_op_line_first_pass(command_index, line_number, NULL, dst, array_of_commands, IC);
 }
 
-int handle_two_op_line_first_pass(int command_index, int line_number, char *str, char ***array_of_commands, int *IC)
+int handle_two_op_line_first_pass(int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC)
 {
     char *src, *dst;
 
@@ -124,9 +124,9 @@ int handle_two_op_line_first_pass(int command_index, int line_number, char *str,
     return handle_op_line_first_pass(command_index, line_number, src, dst, array_of_commands, IC);
 }
 
-int handle_op_line_first_pass(int command_index, int line_number, char *src, char *dst, char ***array_of_commands, int *IC)
+int handle_op_line_first_pass(int command_index, int line_number, char *src, char *dst, unsigned int *array_of_commands, int *IC)
 {
-    char *line_binary_code;
+    int line_binary_code;
     int src_type, dst_type, src_space, dst_space, L = 0;
 
     src_type = get_allocation_type(src);
@@ -154,28 +154,14 @@ int handle_op_line_first_pass(int command_index, int line_number, char *src, cha
     printf("Space size for line: %d\n", L);
 
     line_binary_code = build_command_line_binary_code(command_index, src_type, dst_type);
-    printf("line binary code: %s\n", line_binary_code);
 
-    *array_of_commands = realloc(*array_of_commands, (*IC + L) * sizeof(char *));
-    if (*array_of_commands == NULL)
-    {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    (*array_of_commands)[*IC] = malloc(BINARY_CODE_SIZE);
-    if ((*array_of_commands)[*IC] == NULL)
-    {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    (*array_of_commands)[*IC] = duplicate_str(line_binary_code);
-    free(line_binary_code);
+    array_of_commands[*IC] = line_binary_code;
     (*IC)++;
 
     printf("handling: operands src: %s, dst: %s\n", src, dst);
     if (src_type == ALLOCATION_REGISTER && dst_type == ALLOCATION_REGISTER)
     {
-        (*array_of_commands)[*IC] = get_register_allocations_binary_code(src, dst);
+        array_of_commands[*IC] = get_register_allocations_binary_code(src, dst);
         (*IC)++;
         return 1;
     }
@@ -188,7 +174,7 @@ int handle_op_line_first_pass(int command_index, int line_number, char *src, cha
     return encode_first_pass_operands(dst, dst_type, dst_space, line_number, 0, IC, array_of_commands);
 }
 
-int encode_first_pass_operands(char *op, int type, int space, int line_number, int is_src, int *IC, char ***array_of_commands)
+int encode_first_pass_operands(char *op, int type, int space, int line_number, int is_src, int *IC, unsigned int *array_of_commands)
 {
     if (type == ALLOCATION_MISSING)
     {
@@ -196,7 +182,7 @@ int encode_first_pass_operands(char *op, int type, int space, int line_number, i
     }
     else if (type == ALLOCATION_REGISTER)
     {
-        (*array_of_commands)[*IC] = get_register_allocation_binary_code(op, is_src);
+        array_of_commands[*IC] = get_register_allocation_binary_code(op, is_src);
     }
     else if (type == ALLOCATION_MAT)
     {
@@ -207,11 +193,11 @@ int encode_first_pass_operands(char *op, int type, int space, int line_number, i
     }
     else if (type == ALLOCATION_DIRECT)
     {
-        (*array_of_commands)[*IC] = NULL;
+        array_of_commands[*IC] = 0;
     }
     else if (type == ALLOCATION_IMMEDIATE)
     {
-        (*array_of_commands)[*IC] = get_direct_allocation_binary_code(op);
+        array_of_commands[*IC] = get_immediate_allocation_binary_code(op);
     }
 
     (*IC) = *IC + space;
@@ -220,7 +206,7 @@ int encode_first_pass_operands(char *op, int type, int space, int line_number, i
 }
 
 /* SECOND PASS */
-int handle_command_line_second_pass(symbol_item **symbol_table, char *line, int line_number, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+int handle_command_line_second_pass(symbol_item **symbol_table, char *line, int line_number, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     char *command, *label, *rest_of_line;
     int command_index;
@@ -275,7 +261,7 @@ int handle_command_line_second_pass(symbol_item **symbol_table, char *line, int 
     }
 }
 
-int handle_no_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+int handle_no_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     /* ensure str is empty */
     if (!is_empty_line(str))
@@ -287,7 +273,7 @@ int handle_no_op_line_second_pass(symbol_item **symbol_table, int command_index,
     return handle_op_line_second_pass(symbol_table, command_index, line_number, NULL, NULL, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
 }
 
-int handle_one_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+int handle_one_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     char *dst;
 
@@ -304,7 +290,7 @@ int handle_one_op_line_second_pass(symbol_item **symbol_table, int command_index
     return handle_op_line_second_pass(symbol_table, command_index, line_number, NULL, dst, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
 }
 
-int handle_two_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+int handle_two_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     char *src, *dst;
 
@@ -328,7 +314,7 @@ int handle_two_op_line_second_pass(symbol_item **symbol_table, int command_index
     return handle_op_line_second_pass(symbol_table, command_index, line_number, src, dst, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
 }
 
-int handle_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *src, char *dst, char ***array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+int handle_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *src, char *dst, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     int src_type, dst_type, src_space, dst_space, L = 0;
 
@@ -371,7 +357,7 @@ int handle_op_line_second_pass(symbol_item **symbol_table, int command_index, in
     return encode_second_pass_operands(dst, dst_type, dst_space, line_number, IC, array_of_commands, symbol_table, extern_labels, extern_addresses, extern_count);
 }
 
-int encode_second_pass_operands(char *op, int type, int space, int line_number, int *IC, char ***array_of_commands, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count)
+int encode_second_pass_operands(char *op, int type, int space, int line_number, int *IC, unsigned int *array_of_commands, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     int is_external = 0;
     symbol_item *sym;
@@ -402,14 +388,14 @@ int encode_second_pass_operands(char *op, int type, int space, int line_number, 
             return 0;
         }
 
-        if (strcmp(sym->type, "external") == 0)
+        if (strcmp(sym->type, EXTERN_SYMBOL) == 0)
         {
             is_external = 1;
         }
 
         if (is_external)
         {
-            (*array_of_commands)[*IC] = convert_num_to_8_bits(sym->address, EXTERNAL_CODE);
+            array_of_commands[*IC] = convert_num_to_8_bits(sym->address, EXTERNAL_CODE_ARE);
             *extern_labels = realloc(*extern_labels, sizeof(char *) * (*extern_count + 1));
             *extern_addresses = realloc(*extern_addresses, sizeof(int) * (*extern_count + 1));
             (*extern_labels)[*extern_count] = duplicate_str(sym->name);
@@ -418,7 +404,7 @@ int encode_second_pass_operands(char *op, int type, int space, int line_number, 
         }
         else
         {
-            (*array_of_commands)[*IC] = convert_num_to_8_bits(sym->address, RELOCATABLE_CODE);
+            array_of_commands[*IC] = convert_num_to_8_bits(sym->address, RELOCATABLE_CODE_ARE);
         }
     }
 

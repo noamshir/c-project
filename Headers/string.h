@@ -153,6 +153,12 @@ int get_command_index(char *word);
  */
 int is_command(char *word);
 /**
+ * check if a string is a register and returns its index (if found).
+ * @param word - the string to check.
+ * @return 1 if string is a register, 0 otherwise.
+ */
+int get_register_index(char *word);
+/**
  * check if a string is a register (r0,r1,...,r7)
  * @param word - the string to check.
  * @return 1 if string is a register, 0 otherwise,

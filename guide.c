@@ -9,7 +9,7 @@
 #include "Headers/binary_code.h"
 #include "Headers/guide.h"
 
-int handle_guide_line(symbol_item **symbol_table, char *line, int line_number, char ***array_of_data, int *DC)
+int handle_guide_line(symbol_item **symbol_table, char *line, int line_number, unsigned int *array_of_data, int *DC)
 {
     char *guide, *opening_word, *label_name, *guide_declaration;
 
@@ -18,7 +18,7 @@ int handle_guide_line(symbol_item **symbol_table, char *line, int line_number, c
     {
         /* get label name (without the :) and add it to symbol table */
         label_name = get_label_name(opening_word);
-        if (!add_symbol_item(symbol_table, label_name, "data", *DC, 0, line_number))
+        if (!add_symbol_item(symbol_table, label_name, DATA_SYMBOL, *DC, 0, line_number))
         {
             return 0;
         }
@@ -54,7 +54,7 @@ int handle_guide_line(symbol_item **symbol_table, char *line, int line_number, c
     }
 }
 
-int handle_data_guide(char *guide_declaration, int line_number, char ***array_of_data, int *DC)
+int handle_data_guide(char *guide_declaration, int line_number, unsigned int *array_of_data, int *DC)
 {
     /* check that guide_declaration is of type: "num1, num2, ...., numn" */
     char *str, *temp;
@@ -96,14 +96,7 @@ int handle_data_guide(char *guide_declaration, int line_number, char ***array_of
 
         num = atoi(str);
 
-        /* allocate memo to array of data */
-        *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
-        if (*array_of_data == NULL)
-        {
-            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-        }
-
-        (*array_of_data)[*DC] = convert_num_to_10_bits(num);
+        array_of_data[*DC] = convert_num_to_10_bits(num);
         i++;
         (*DC)++;
     }
@@ -111,7 +104,7 @@ int handle_data_guide(char *guide_declaration, int line_number, char ***array_of
     return 1;
 }
 
-int handle_string_guide(char *guide_declaration, int line_number, char ***array_of_data, int *DC)
+int handle_string_guide(char *guide_declaration, int line_number, unsigned int *array_of_data, int *DC)
 {
     /* check that line is of type: "label: .string "string"" */
     int i = 0;
@@ -137,32 +130,18 @@ int handle_string_guide(char *guide_declaration, int line_number, char ***array_
     for (i = 1; i < strlen(temp) - 1; i++)
     {
         c = temp[i];
-
-        /* allocate memo to array of data */
-        *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
-        if (*array_of_data == NULL)
-        {
-            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-        }
-
-        (*array_of_data)[*DC] = convert_num_to_10_bits((int)c);
+        array_of_data[*DC] = convert_num_to_10_bits((int)c);
         (*DC)++;
     }
 
-    *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
-    if (*array_of_data == NULL)
-    {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
     /* add end of string char binary code */
-    (*array_of_data)[*DC] = convert_num_to_10_bits((int)'\0');
+    array_of_data[*DC] = convert_num_to_10_bits((int)'\0');
     (*DC)++;
 
     return 1;
 }
 
-int handle_mat_guide(char *guide_declaration, int line_number, char ***array_of_data, int *DC)
+int handle_mat_guide(char *guide_declaration, int line_number, unsigned int *array_of_data, int *DC)
 {
     /* check that line is of type: "label: .mat [num1][num2] optional numbers separated by comma */
     char *str, *temp;
@@ -212,14 +191,8 @@ int handle_mat_guide(char *guide_declaration, int line_number, char ***array_of_
             }
             num = atoi(str);
         }
-        /* allocate memo to array of data */
-        *array_of_data = realloc(*array_of_data, (*DC + 1) * sizeof(char *));
-        if (*array_of_data == NULL)
-        {
-            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-        }
 
-        (*array_of_data)[*DC] = convert_num_to_10_bits(num);
+        array_of_data[*DC] = convert_num_to_10_bits(num);
         (*DC)++;
     }
 
@@ -344,7 +317,7 @@ int handle_extern_guide_line(symbol_item **symbol_table, char *line, int line_nu
         print_line_error(PROCESS_ERROR_INVALID_EXTERN_LABEL_NAME, line_number);
         return 0;
     }
-    return add_symbol_item(symbol_table, next_word, "external", 0, 0, line_number);
+    return add_symbol_item(symbol_table, next_word, EXTERN_SYMBOL, 0, 0, line_number);
 }
 
 int handle_entry_guide(char *entry_label, int line_number, symbol_item **symbol_table, char ***entry_labels, int **entry_addresses, int *entry_count)
@@ -377,7 +350,7 @@ int handle_entry_guide(char *entry_label, int line_number, symbol_item **symbol_
 
             /* add label and address */
             (*entry_labels)[*entry_count] = duplicate_str(entry_label);
-            (*entry_addresses)[*entry_count] = strcmp(sym->type, "code") == 0 ? MEMORY_START_ADDRESS + sym->address : sym->address;
+            (*entry_addresses)[*entry_count] = strcmp(sym->type, CODE_SYMBOL) == 0 ? MEMORY_START_ADDRESS + sym->address : sym->address;
             (*entry_count)++;
         }
     }
@@ -394,7 +367,7 @@ int add_entry_attribute(symbol_item **symbol_table, char *entry_label, int line_
         return 0;
     }
 
-    if (strcmp(curr->type, "external") == 0)
+    if (strcmp(curr->type, EXTERN_SYMBOL) == 0)
     {
         print_line_error(PROCESS_ERROR_ENTRY_GUIDE_CANT_BE_EXTERNAL, line_number);
         return 0;

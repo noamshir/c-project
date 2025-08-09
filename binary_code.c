@@ -8,247 +8,114 @@
 #include "Headers/utils.h"
 #include "Headers/symbol_table.h"
 
-char *build_command_line_binary_code(int command_index, int src_type, int dst_type)
+unsigned int build_command_line_binary_code(int op_index, int src_type, int dst_type)
 {
-    char *binary_code, *command_code, *ARE_code, *src_type_code, *dst_type_code;
+    unsigned int result = 0;
+    /* src_type and dst_type can be -1, representing the command line might not have them.
+    support it we convert -1 to 0 */
+    src_type = src_type == -1 ? 0 : src_type;
+    dst_type = dst_type == -1 ? 0 : dst_type;
 
-    /* get the binary code separated parts */
-    command_code = get_command_binary_code(command_index);
-    src_type_code = get_allocation_type_binary_code(src_type);
-    dst_type_code = get_allocation_type_binary_code(dst_type);
-    ARE_code = get_ARE_binary_code(ABSOLUTE_CODE);
+    /* op index is bits 6-9 */
+    result |= (op_index & 0xF) << 6;
 
-    binary_code = malloc(BINARY_CODE_SIZE);
-    if (binary_code == NULL)
-    {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
+    /* src type is bits 4-5 */
+    result |= (src_type & 0x3) << 4;
 
-    /* concat all the parts to a command line binary code */
-    strcpy(binary_code, command_code);
-    strcat(binary_code, src_type_code);
-    strcat(binary_code, dst_type_code);
-    strcat(binary_code, ARE_code);
+    /* dst type is bits 2-3 */
+    result |= (dst_type & 0x3) << 2;
 
-    return binary_code;
+    /* ARE flags are bits 0-1, in command line its always ABSOLUTE_CODE_ARE (00) */
+    result |= ABSOLUTE_CODE_ARE;
+
+    /* ensure 10 bits */
+    return result & TEN_BITS;
 }
 
-char *get_command_binary_code(int command_index)
-{
-    switch (command_index)
-    {
-    case COMMAND_MOV:
-        return "0000";
-    case COMMAND_CMP:
-        return "0001";
-    case COMMAND_ADD:
-        return "0010";
-    case COMMAND_SUB:
-        return "0011";
-    case COMMAND_LEA:
-        return "0100";
-    case COMMAND_CLR:
-        return "0101";
-    case COMMAND_NOT:
-        return "0110";
-    case COMMAND_INC:
-        return "0111";
-    case COMMAND_DEC:
-        return "1000";
-    case COMMAND_JMP:
-        return "1001";
-    case COMMAND_BNE:
-        return "1010";
-    case COMMAND_JSR:
-        return "1011";
-    case COMMAND_RED:
-        return "1100";
-    case COMMAND_PRN:
-        return "1101";
-    case COMMAND_RTS:
-        return "1110";
-    case COMMAND_STOP:
-        return "1111";
-    }
-
-    return NULL;
-}
-
-char *get_ARE_binary_code(int ARE_type)
-{
-    switch (ARE_type)
-    {
-    case ABSOLUTE_CODE:
-        return "00";
-    case EXTERNAL_CODE:
-        return "01";
-    case RELOCATABLE_CODE:
-        return "10";
-    default:
-        return NULL;
-    }
-}
-
-char *get_allocation_type_binary_code(int allocation_type)
-{
-    switch (allocation_type)
-    {
-    case ALLOCATION_MISSING:
-    case ALLOCATION_IMMEDIATE:
-        return "00";
-    case ALLOCATION_DIRECT:
-        return "01";
-    case ALLOCATION_MAT:
-        return "10";
-    case ALLOCATION_REGISTER:
-        return "11";
-    default:
-        return NULL;
-    }
-}
-
-char *get_direct_allocation_binary_code(char *str)
+unsigned int get_immediate_allocation_binary_code(char *str)
 {
     int num;
-    char *temp = duplicate_str(str);
-    char *binary_code = malloc(BINARY_CODE_SIZE);
-    if (binary_code == NULL)
-    {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
 
-    num = get_num_from_direct_allocation(temp);
-    binary_code = convert_num_to_8_bits(num, ABSOLUTE_CODE);
-    return binary_code;
+    /* extract number from immediate allocation string */
+    num = get_num_from_immediate_allocation(str);
+    return convert_num_to_8_bits(num, ABSOLUTE_CODE_ARE);
 }
 
-int get_num_from_direct_allocation(char *str)
+int get_num_from_immediate_allocation(char *str)
 {
     char *temp = duplicate_str(str);
     temp = strtok(temp, "#");
     return atoi(temp);
 }
 
-char *convert_num_to_8_bits(int num, int ARE_type)
+unsigned int convert_num_to_8_bits(int num, int ARE_type)
 {
-    int i;
-    char *binary_code, *ARE_code;
+    unsigned short result;
 
-    binary_code = malloc(BINARY_CODE_SIZE);
-    ARE_code = get_ARE_binary_code(ARE_type);
-
-    if (binary_code == NULL)
+    /* handle positive and negative separately */
+    if (num < 0)
     {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    /* convert num to binary (8 bits) and add ARE code at the end */
-    for (i = 7; i >= 0; i--)
-    {
-        binary_code[7 - i] = (num & (1 << i)) ? '1' : '0';
-    }
-    binary_code[8] = '\0';
-    strcat(binary_code, ARE_code);
-
-    printf("num: %d, binary code: %s\n", num, binary_code);
-    return binary_code;
-}
-
-char *convert_num_to_10_bits(int num)
-{
-    int i;
-    char *binary_code = malloc(BINARY_CODE_SIZE);
-    if (binary_code == NULL)
-    {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    /* convert num to binary (10 bits) */
-    for (i = 9; i >= 0; i--)
-    {
-        binary_code[9 - i] = (num & (1 << i)) ? '1' : '0';
-    }
-    binary_code[10] = '\0';
-    printf("num: %d, binary code: %s\n", num, binary_code);
-    return binary_code;
-}
-
-char *get_register_allocation_binary_code_base_4(char *str)
-{
-    int num;
-    char *temp = duplicate_str(str);
-    temp = strtok(temp, "r");
-    num = atoi(temp);
-    switch (num)
-    {
-    case REGISTER_R0:
-        return "0000";
-    case REGISTER_R1:
-        return "0001";
-    case REGISTER_R2:
-        return "0010";
-    case REGISTER_R3:
-        return "0011";
-    case REGISTER_R4:
-        return "0100";
-    case REGISTER_R5:
-        return "0101";
-    case REGISTER_R6:
-        return "0110";
-    case REGISTER_R7:
-        return "0111";
-    }
-
-    return NULL;
-}
-
-char *get_register_allocation_binary_code(char *str, int is_src)
-{
-    char *temp = duplicate_str(str);
-    char *binary_code = malloc(BINARY_CODE_SIZE);
-
-    if (binary_code == NULL)
-    {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    if (is_src)
-    {
-        strcpy(binary_code, get_register_allocation_binary_code_base_4(temp));
-        strcat(binary_code, get_register_allocation_binary_code_base_4("r0"));
+        /* 8-bit 2's complement, then shift left by 2 for ARE flags */
+        result = ((unsigned short)(num & 0xFF)) << 2;
     }
     else
     {
-        strcpy(binary_code, get_register_allocation_binary_code_base_4("r0"));
-        strcat(binary_code, get_register_allocation_binary_code_base_4(temp));
+        /* Positive num, shift left by 2 for ARE flags */
+        result = ((unsigned short)num) << 2;
     }
 
-    strcat(binary_code, get_ARE_binary_code(ABSOLUTE_CODE));
+    /* Set ARE flag according to the param */
+    result |= ARE_type;
 
-    printf("register %s binary code: %s\n", str, binary_code);
-    return binary_code;
+    return result & TEN_BITS;
 }
 
-char *get_register_allocations_binary_code(char *src, char *dst)
+unsigned int convert_num_to_10_bits(int num)
 {
-    char *src_binary_code = get_register_allocation_binary_code_base_4(src);
-    char *dst_binary_code = get_register_allocation_binary_code_base_4(dst);
-    char *binary_code = malloc(BINARY_CODE_SIZE);
-
-    if (binary_code == NULL)
-    {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    strcpy(binary_code, src_binary_code);
-    strcat(binary_code, dst_binary_code);
-    strcat(binary_code, get_ARE_binary_code(ABSOLUTE_CODE));
-
-    printf("register %s and %s binary code: %s\n", src, dst, binary_code);
-    return binary_code;
+    return num & TEN_BITS;
 }
 
-int set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_commands, int IC)
+unsigned int get_register_allocation_binary_code(char *str, int is_src)
+{
+    if (is_src)
+    {
+        /* the src first than all 0*/
+        return get_register_allocations_binary_code(str, "r0");
+    }
+    else
+    {
+        /* 4 0's first than dst and than all 0*/
+        return get_register_allocations_binary_code("r0", str);
+    }
+}
+
+unsigned int get_register_allocations_binary_code(char *src, char *dst)
+{
+    unsigned int result = 0;
+    int src_reg_idx, dest_reg_idx;
+
+    src_reg_idx = get_register_index(src);
+    dest_reg_idx = get_register_index(dst);
+
+    /* Encode source register in bits 6-9 (4 bits) */
+    if (src_reg_idx >= 0 && src_reg_idx <= 7)
+    {
+        result |= (src_reg_idx & 0xF) << 6;
+    }
+
+    /* Encode destination register in bits 2-5 (4 bits) */
+    if (dest_reg_idx >= 0 && dest_reg_idx <= 7)
+    {
+        result |= (dest_reg_idx & 0xF) << 2;
+    }
+
+    /* Set ARE flags to absolute (bits 0-1) */
+    result |= ABSOLUTE_CODE_ARE;
+
+    return result & TEN_BITS;
+}
+
+int set_first_pass_mat_allocation_binary_code(char *str, unsigned int *array_of_commands, int IC)
 {
     /* we dont care about the label encode in first pass, skip its definition */
     int valid;
@@ -270,7 +137,7 @@ int set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_comman
     {
         temp++;
     }
-    (*array_of_commands)[IC] = NULL;
+    array_of_commands[IC] = 0;
     IC++;
 
     /* temp is now [reg1][reg2] (without the label) */
@@ -281,13 +148,13 @@ int set_first_pass_mat_allocation_binary_code(char *str, char ***array_of_comman
         return 0;
     }
 
-    (*array_of_commands)[IC] = get_register_allocations_binary_code(reg1, reg2);
+    array_of_commands[IC] = get_register_allocations_binary_code(reg1, reg2);
     IC++;
 
     return 1;
 }
 
-int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_commands, int *IC, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count)
+int set_second_pass_mat_allocation_binary_code(char *str, unsigned int *array_of_commands, int *IC, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     /* we only care about the label encode in second pass */
     int i = 0, is_external = 0;
@@ -310,14 +177,14 @@ int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_comma
         return 0;
     }
 
-    if (strcmp(sym->type, "external") == 0)
+    if (strcmp(sym->type, EXTERN_SYMBOL) == 0)
     {
         is_external = 1;
     }
 
     if (is_external)
     {
-        (*array_of_commands)[*IC] = convert_num_to_8_bits(sym->address, EXTERNAL_CODE);
+        array_of_commands[*IC] = convert_num_to_8_bits(sym->address, EXTERNAL_CODE_ARE);
         *extern_labels = realloc(*extern_labels, sizeof(char *) * (*extern_count + 1));
         *extern_addresses = realloc(*extern_addresses, sizeof(int) * (*extern_count + 1));
         (*extern_labels)[*extern_count] = duplicate_str(sym->name);
@@ -326,7 +193,7 @@ int set_second_pass_mat_allocation_binary_code(char *str, char ***array_of_comma
     }
     else
     {
-        (*array_of_commands)[*IC] = convert_num_to_8_bits(sym->address, RELOCATABLE_CODE);
+        array_of_commands[*IC] = convert_num_to_8_bits(sym->address, RELOCATABLE_CODE_ARE);
     }
 
     return 1;

@@ -12,7 +12,7 @@
  * @param DC a pointer to an integer counting the data items.
  * @return 1 if the line is a valid guide line and was handled successfully, 0 otherwise.
  */
-int handle_guide_line(symbol_item **symbol_table, char *line, int line_number, char ***array_of_data, int *DC);
+int handle_guide_line(symbol_item **symbol_table, char *line, int line_number, unsigned int *array_of_data, int *DC);
 /**
  * @brief process and handle a data guide declaration (num1, num2, ....).
  * This function gets a string representing a data guide declaration and ensure it's valid,
@@ -23,7 +23,7 @@ int handle_guide_line(symbol_item **symbol_table, char *line, int line_number, c
  * @param DC a pointer to an integer counting the data items.
  * @return 1 if the guide declaration is a valid data guide declaration and was handled successfully, 0 otherwise.
  */
-int handle_data_guide(char *guide_declaration, int line_number, char ***array_of_data, int *DC);
+int handle_data_guide(char *guide_declaration, int line_number, unsigned int *array_of_data, int *DC);
 /**
  * @brief process and handle a string guide declaration ("something").
  * This function gets a string representing a string guide declaration and ensure it's valid,
@@ -34,7 +34,7 @@ int handle_data_guide(char *guide_declaration, int line_number, char ***array_of
  * @param DC a pointer to an integer counting the data items.
  * @return 1 if the guide declaration is a valid string guide declaration and was handled successfully, 0 otherwise.
  */
-int handle_string_guide(char *guide_declaration, int line_number, char ***array_of_data, int *DC);
+int handle_string_guide(char *guide_declaration, int line_number, unsigned int *array_of_data, int *DC);
 /**
  * @brief process and handle a mat guide declaration ([num1][num2] num1, num2,...,).
  * This function gets a string representing a mat guide declaration and ensure it's valid,
@@ -45,7 +45,7 @@ int handle_string_guide(char *guide_declaration, int line_number, char ***array_
  * @param DC a pointer to an integer counting the data items.
  * @return 1 if the guide declaration is a valid mat guide declaration and was handled successfully, 0 otherwise.
  */
-int handle_mat_guide(char *guide_declaration, int line_number, char ***array_of_data, int *DC);
+int handle_mat_guide(char *guide_declaration, int line_number, unsigned int *array_of_data, int *DC);
 /**
  * @brief sets the rows and columns from the mat declaration in the given integer pointers.
  * @param guide_declaration a string representing mat declaration.

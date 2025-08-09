@@ -11,4 +11,5 @@
  * @return 1 if successfully processed the file, 0 otherwise.
  */
 int first_pass(char *file_name_without_postfix, mcro_item **mcro_table);
+void print_10bit_array(unsigned int *arr, size_t size);
 #endif

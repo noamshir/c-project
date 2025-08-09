@@ -14,13 +14,11 @@
 
 int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
 {
-    int IC = 0, DC = 0, ICF, DCF, line_num = 0, i = 0, is_line_valid = 0, has_errors = 0;
-    char *file_name, line[LINE_SIZE], *first_word_in_line, *main_op, **array_of_commands = NULL, **array_of_data = NULL;
+    int IC = 0, DC = 0, ICF, DCF, line_num = 0, is_line_valid = 0, has_errors = 0;
+    unsigned int array_of_commands[156], array_of_data[156];
+    char *file_name, line[LINE_SIZE], *first_word_in_line, *main_op;
     FILE *file;
     symbol_item *symbol_table = NULL;
-
-    array_of_commands = malloc(sizeof(char *));
-    array_of_data = malloc(sizeof(char *));
 
     printf("first pass started\n");
 
@@ -75,7 +73,7 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
 
         if (is_data_guide(main_op) || is_string_guide(main_op) || is_mat_guide(main_op))
         {
-            is_line_valid = handle_guide_line(&symbol_table, line, line_num, &array_of_data, &DC);
+            is_line_valid = handle_guide_line(&symbol_table, line, line_num, array_of_data, &DC);
         }
         else if (is_extern_guide(main_op))
         {
@@ -89,7 +87,7 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
         else
         {
             /* not all the above? must be a command line */
-            is_line_valid = handle_command_line_first_pass(&symbol_table, line, line_num, &array_of_commands, &IC);
+            is_line_valid = handle_command_line_first_pass(&symbol_table, line, line_num, array_of_commands, &IC);
         }
 
         if (!is_line_valid)
@@ -97,7 +95,7 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
             has_errors = 1;
         }
 
-        if ((IC + DC) > MAX_MEMORY_SIZE)
+        if (((IC + DC) + MEMORY_START_ADDRESS) > MAX_MEMORY_SIZE)
         {
             /* exceeded max memory, should stop */
             print_error(PROCESS_ERROR_MAX_MEMORY_SIZE_EXCEEDED);
@@ -108,8 +106,6 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
     if (has_errors)
     {
         free_symbol_table(symbol_table);
-        free_array_of_strings(array_of_commands, IC);
-        free_array_of_strings(array_of_data, DC);
         print_error(PROCESS_ERROR_FIRST_PASS_FAILED);
         return 0;
     }
@@ -119,16 +115,10 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
 
     /*DEBUG*/
     printf("data array after first pass (%d):\n", DC);
-    for (i = 0; i < DC; i++)
-    {
-        printf("data: %s\n", array_of_data[i]);
-    }
+    print_10bit_array(array_of_data, DC);
 
     printf("commands array after first pass (%d):\n", IC);
-    for (i = 0; i < IC; i++)
-    {
-        printf("command: %s\n", array_of_commands[i]);
-    }
+    print_10bit_array(array_of_commands, IC);
 
     update_data_symbol_items_address(&symbol_table, IC + MEMORY_START_ADDRESS);
 
@@ -138,12 +128,23 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
     printf("first pass finished\n");
 
     /* second pass */
-    second_pass(file_name_without_postfix, &symbol_table, &array_of_commands, ICF, &array_of_data, DCF);
+    second_pass(file_name_without_postfix, &symbol_table, array_of_commands, ICF, array_of_data, DCF);
 
     /* free memory */
     free_symbol_table(symbol_table);
-    free_array_of_strings(array_of_commands, IC);
-    free_array_of_strings(array_of_data, DC);
 
     return 1;
+}
+
+void print_10bit_array(unsigned int *arr, size_t size)
+{
+    size_t i, bit;
+    for (i = 0; i < size; i++)
+    {
+        for (bit = 9; bit < 10; bit--) /* loop from bit 9 down to bit 0 */
+        {
+            printf("%u", (arr[i] >> bit) & 1);
+        }
+        printf("\n");
+    }
 }

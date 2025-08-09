@@ -54,16 +54,31 @@ typedef enum ALLOCATION_TYPES
 
 typedef enum ARE_TYPES
 {
-    ABSOLUTE_CODE,
-    EXTERNAL_CODE,
-    RELOCATABLE_CODE
+    ABSOLUTE_CODE_ARE,
+    EXTERNAL_CODE_ARE,
+    RELOCATABLE_CODE_ARE
 } ARE_TYPES;
 
+/* STRINGS */
 #define LABEL_SIZE 31
 #define LINE_SIZE 81
 #define BINARY_CODE_SIZE 11
 #define REG_SIZE 3
+
+/* MEMORY */
 #define MEMORY_START_ADDRESS 100
 #define MAX_MEMORY_SIZE 256
+
+/* BINARY */
+#define TEN_BITS 0x3FF
+
+/* MACRO */
+#define MCRO_START "mcro"
+#define MCRO_END "mcroend"
+
+/* SYMBOLS */
+#define DATA_SYMBOL "data"
+#define CODE_SYMBOL "code"
+#define EXTERN_SYMBOL "external"
 
 #endif

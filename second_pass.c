@@ -12,13 +12,13 @@
 #include "Headers/command.h"
 #include "Headers/guide.h"
 
-void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, char ***array_of_commands, int ICF, char ***array_of_data, int DCF)
+void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, unsigned int *array_of_commands, int ICF, unsigned int *array_of_data, int DCF)
 {
     FILE *file;
     char *file_name;
     char line[LINE_SIZE];
     char *word, *main_op, *label;
-    int line_num = 0, error_flag = 0, IC = 0, i;
+    int line_num = 0, error_flag = 0, IC = 0;
 
     char **entry_labels = NULL;
     int *entry_addresses = NULL;
@@ -121,13 +121,6 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, ch
             /*if it's command line, maybe we need to encode some of its operands */
             handle_command_line_second_pass(symbol_table, line, line_num, array_of_commands, &IC, &extern_labels, &extern_addresses, &extern_count);
         }
-    }
-
-    /*DEBUG*/
-    printf("commands array after second pass (%d):\n", ICF);
-    for (i = 0; i < ICF; i++)
-    {
-        printf("command: %s\n", (*array_of_commands)[i]);
     }
 
     /* creation of final files (.ob, .entry, .extrn)*/

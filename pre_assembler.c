@@ -104,7 +104,7 @@ int fill_mcro_table(FILE *file, mcro_item **mcro_table)
         first_word = delete_white_spaces_start_and_end(first_word);
 
         /* checks if the first word is mcro declaration */
-        if (strcmp(first_word, "mcro") == 0)
+        if (strcmp(first_word, MCRO_START) == 0)
         {
             isMacro = 1;
             second_word = strtok(NULL, " ");
@@ -130,7 +130,7 @@ int fill_mcro_table(FILE *file, mcro_item **mcro_table)
             continue;
         }
         /* checks if the first word is mcroend declaration */
-        else if (strcmp(first_word, "mcroend") == 0)
+        else if (strcmp(first_word, MCRO_END) == 0)
         {
             /* a valid mcroend declaration should have only 1 word... */
             second_word = strtok(NULL, " ");
@@ -181,7 +181,7 @@ void remove_mcro_defines(FILE *as_fp, FILE *am_fp)
             continue;
         }
 
-        if (strcmp(token, "mcroend") == 0)
+        if (strcmp(token, MCRO_END) == 0)
         {
             /* turn mcro flag off, no need to write line */
             found_mcro = 0;
@@ -194,7 +194,7 @@ void remove_mcro_defines(FILE *as_fp, FILE *am_fp)
             continue;
         }
 
-        if (strcmp(token, "mcro") == 0)
+        if (strcmp(token, MCRO_START) == 0)
         {
             /* turn mcro flag on, no need to write line */
             found_mcro = 1;

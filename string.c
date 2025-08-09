@@ -464,18 +464,32 @@ int is_command(char *word)
     return get_command_index(word) != -1;
 }
 
-int is_register(char *word)
+int get_register_index(char *word)
 {
     int i;
-    /* check if word is register */
-    for (i = 0; i < 8; i++)
+
+    if (word == NULL)
     {
-        if (strcmp(word, registers[i]) == 0)
-        {
-            return 1;
-        }
+        return -1;
     }
-    return 0;
+
+    for (i = 0; i < 8; i++)
+        /* check if word is register */
+        for (i = 0; i < 8; i++)
+        {
+            if (strcmp(word, registers[i]) == 0)
+            {
+                /* reg index */
+                return i;
+            }
+        }
+
+    return -1;
+}
+
+int is_register(char *word)
+{
+    return get_register_index(word) != -1;
 }
 
 int get_allocation_type(char *word)
