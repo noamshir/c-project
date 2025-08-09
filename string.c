@@ -552,8 +552,7 @@ int is_immediate_allocation(char *word)
 
 int is_mat_allocation(char *word)
 {
-    /* check that next word is [reg1][reg2] */
-    int i = 0;
+    /* check that next word is label[reg1][reg2] */
     char label[LABEL_SIZE], *mat_def, *temp, *reg1, *reg2;
     if (word == NULL)
     {
@@ -584,16 +583,8 @@ int is_mat_allocation(char *word)
     }
 
     /* build label from mat allocation */
-    temp = duplicate_str(word);
-    while (*temp != '[')
-    {
-        label[i] = *temp;
-        i++;
-        temp++;
-    }
-    label[i] = '\0';
+    set_label_from_mat_allocation(word, label);
 
-    i = 0;
     if (!is_valid_label_name(label))
     {
         return 0;
@@ -602,6 +593,22 @@ int is_mat_allocation(char *word)
     /* temp is now [reg1][reg2] (without the label) */
     mat_def = duplicate_str(temp);
     return set_regs_from_mat_allocation(mat_def, reg1, reg2);
+}
+
+void set_label_from_mat_allocation(char *mat_def, char *label)
+{
+    char *temp;
+    int i = 0;
+
+    temp = duplicate_str(mat_def);
+    while (*temp != '[')
+    {
+        label[i] = *temp;
+        i++;
+        temp++;
+    }
+
+    label[i] = '\0';
 }
 
 int set_regs_from_mat_allocation(char *mat_def, char *reg1, char *reg2)

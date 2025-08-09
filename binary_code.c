@@ -148,53 +148,9 @@ int set_first_pass_mat_allocation_binary_code(char *str, unsigned int *array_of_
         return 0;
     }
 
+    /* fill array of commands with the binary code for the regs */
     array_of_commands[IC] = get_register_allocations_binary_code(reg1, reg2);
     IC++;
-
-    return 1;
-}
-
-int set_second_pass_mat_allocation_binary_code(char *str, unsigned int *array_of_commands, int *IC, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count)
-{
-    /* we only care about the label encode in second pass */
-    int i = 0, is_external = 0;
-    char *temp, label[LABEL_SIZE];
-    symbol_item *sym;
-
-    /* build label from mat allocation */
-    temp = duplicate_str(str);
-    while (*temp != '[')
-    {
-        label[i] = *temp;
-        i++;
-        temp++;
-    }
-    label[i] = '\0';
-
-    sym = find_symbol_item_by_name(*symbol_table, label);
-    if (sym == NULL)
-    {
-        return 0;
-    }
-
-    if (strcmp(sym->type, EXTERN_SYMBOL) == 0)
-    {
-        is_external = 1;
-    }
-
-    if (is_external)
-    {
-        array_of_commands[*IC] = convert_num_to_8_bits(sym->address, EXTERNAL_CODE_ARE);
-        *extern_labels = realloc(*extern_labels, sizeof(char *) * (*extern_count + 1));
-        *extern_addresses = realloc(*extern_addresses, sizeof(int) * (*extern_count + 1));
-        (*extern_labels)[*extern_count] = duplicate_str(sym->name);
-        (*extern_addresses)[*extern_count] = *IC + MEMORY_START_ADDRESS;
-        (*extern_count)++;
-    }
-    else
-    {
-        array_of_commands[*IC] = convert_num_to_8_bits(sym->address, RELOCATABLE_CODE_ARE);
-    }
 
     return 1;
 }

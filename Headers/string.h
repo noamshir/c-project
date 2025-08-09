@@ -183,6 +183,12 @@ int is_immediate_allocation(char *word);
  */
 int is_mat_allocation(char *word);
 /**
+ * @brief sets the label buffer received as param with the mat allocation label.
+ * @param mat_def the string representing the mat allocation.
+ * @param label a string buffer to fill with the mat allocation label.
+ */
+void set_label_from_mat_allocation(char *mat_def, char *label);
+/**
  * extract registers from the mat allocation definition and set them in the pointers received as props.
  * @param mat_def - the string representing the mat allocation definition (without the label - [reg1][reg2]).
  * @param reg1 - a string to put the first register value in.

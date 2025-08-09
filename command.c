@@ -360,6 +360,8 @@ int handle_op_line_second_pass(symbol_item **symbol_table, int command_index, in
 int encode_second_pass_operands(char *op, int type, int space, int line_number, int *IC, unsigned int *array_of_commands, symbol_item **symbol_table, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     int is_external = 0;
+    char label_temp[LABEL_SIZE];
+    char *label;
     symbol_item *sym;
 
     if (type == ALLOCATION_MISSING)
@@ -370,18 +372,19 @@ int encode_second_pass_operands(char *op, int type, int space, int line_number, 
     {
         /* already handled */
     }
-    else if (type == ALLOCATION_MAT)
+    else if (type == ALLOCATION_MAT || type == ALLOCATION_DIRECT)
     {
-        if (!set_second_pass_mat_allocation_binary_code(op, array_of_commands, IC, symbol_table, extern_labels, extern_addresses, extern_count))
+        if (type == ALLOCATION_MAT)
         {
-            print_line_error(PROCESS_ERROR_LABEL_NOT_IN_SYMBOL_TABLE, line_number);
-            return 0;
+            set_label_from_mat_allocation(op, label_temp);
+            label = duplicate_str(label_temp);
         }
-    }
-    else if (type == ALLOCATION_DIRECT)
-    {
-        op = delete_white_spaces_start_and_end(op);
-        sym = find_symbol_item_by_name(*symbol_table, op);
+        else
+        {
+            label = duplicate_str(op);
+        }
+        label = delete_white_spaces_start_and_end(label);
+        sym = find_symbol_item_by_name(*symbol_table, label);
         if (sym == NULL)
         {
             print_line_error(PROCESS_ERROR_LABEL_NOT_IN_SYMBOL_TABLE, line_number);
