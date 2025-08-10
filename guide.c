@@ -13,7 +13,7 @@ int handle_guide_line(symbol_item **symbol_table, char *line, int line_number, u
 {
     char *guide, *opening_word, *label_name, *guide_declaration;
 
-    opening_word = strtok(duplicate_str(line), " ");
+    opening_word = strtok(duplicate_str(line), " \t");
     if (is_label_declaration(opening_word))
     {
         /* get label name (without the :) and add it to symbol table */
@@ -24,7 +24,7 @@ int handle_guide_line(symbol_item **symbol_table, char *line, int line_number, u
         }
 
         /* first word in line is label, second word must be the guide (.data/.string/...)*/
-        guide = strtok(NULL, " ");
+        guide = strtok(NULL, " \t");
     }
     else
     {
@@ -170,7 +170,7 @@ int handle_mat_guide(char *guide_declaration, int line_number, unsigned int *arr
         return 0;
     }
 
-    str = strtok(temp, " ");
+    str = strtok(temp, " \t");
     /* now str is num1, num2..., if not set it will be empty */
     for (i = 0; i < (rows * cols); i++)
     {
@@ -287,10 +287,10 @@ int handle_extern_guide_line(symbol_item **symbol_table, char *line, int line_nu
     /* check that line is of type: "label: .extern extern label" */
     char *word, *next_word;
 
-    word = strtok(duplicate_str(line), " ");
+    word = strtok(duplicate_str(line), " \t");
     if (is_label_declaration(word))
     {
-        word = strtok(NULL, " ");
+        word = strtok(NULL, " \t");
         if (!is_extern_guide(word))
         {
             print_line_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION, line_number);

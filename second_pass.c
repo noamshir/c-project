@@ -86,13 +86,13 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, un
         }
 
         /*get the first word in the line*/
-        word = strtok(duplicate_str(line), " ");
+        word = strtok(duplicate_str(line), " \t");
         word = delete_white_spaces_start_and_end(word);
 
         /*ignore lables words and save the command in param*/
         if (is_label_declaration(word))
         {
-            main_op = strtok(NULL, " ");
+            main_op = strtok(NULL, " \t");
             main_op = delete_white_spaces_start_and_end(main_op);
         }
         else
@@ -119,7 +119,10 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, un
         else
         {
             /*if it's command line, maybe we need to encode some of its operands */
-            handle_command_line_second_pass(symbol_table, line, line_num, array_of_commands, &IC, &extern_labels, &extern_addresses, &extern_count);
+            if (!handle_command_line_second_pass(symbol_table, line, line_num, array_of_commands, &IC, &extern_labels, &extern_addresses, &extern_count))
+            {
+                error_flag = 1;
+            }
         }
     }
 

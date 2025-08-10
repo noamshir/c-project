@@ -55,7 +55,7 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
             continue;
         }
 
-        first_word_in_line = strtok(duplicate_str(line), " ");
+        first_word_in_line = strtok(duplicate_str(line), " \t");
         if (is_label_declaration(first_word_in_line))
         {
             label = get_label_name(first_word_in_line);
@@ -73,7 +73,7 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
                 continue;
             }
             /* if the first word is label than the second one is the command or the guide */
-            main_op = strtok(NULL, " ");
+            main_op = strtok(NULL, " \t");
         }
         else
         {

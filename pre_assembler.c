@@ -101,14 +101,14 @@ int fill_mcro_table(FILE *file, mcro_item **mcro_table)
             return 0;
         }
 
-        first_word = strtok(duplicate_str(line), " ");
+        first_word = strtok(duplicate_str(line), " \t");
         first_word = delete_white_spaces_start_and_end(first_word);
 
         /* checks if the first word is mcro declaration */
         if (strcmp(first_word, MCRO_START) == 0)
         {
             isMacro = 1;
-            second_word = strtok(NULL, " ");
+            second_word = strtok(NULL, " \t");
             second_word = delete_white_spaces_start_and_end(second_word);
 
             /* if the first word is mcro than the second word in line is its name */
@@ -119,7 +119,7 @@ int fill_mcro_table(FILE *file, mcro_item **mcro_table)
             }
 
             /* a valid mcro declaration should have only 2 words... */
-            third_word = strtok(NULL, " ");
+            third_word = strtok(NULL, " \t");
             if (third_word != NULL)
             {
                 print_error(PROCESS_ERROR_INVALID_MACRO_DECLARATION);
@@ -134,7 +134,7 @@ int fill_mcro_table(FILE *file, mcro_item **mcro_table)
         else if (strcmp(first_word, MCRO_END) == 0)
         {
             /* a valid mcroend declaration should have only 1 word... */
-            second_word = strtok(NULL, " ");
+            second_word = strtok(NULL, " \t");
             second_word = delete_white_spaces_start_and_end(second_word);
             if (!is_empty_line(second_word))
             {

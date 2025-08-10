@@ -124,9 +124,9 @@ int is_label_declaration(char *word)
     }
 
     end_of_string = strlen(word) - 1;
-    if (word[end_of_string] == ':')
+    if (word[end_of_string] != ':')
     {
-        return 1;
+        return 0;
     }
 
     /* check that each char is abc or 0-9 */
@@ -138,7 +138,7 @@ int is_label_declaration(char *word)
         }
     }
 
-    return 0;
+    return 1;
 }
 
 char *get_label_name(char *word)
@@ -249,7 +249,7 @@ int is_mat_declaration(char *guide_declaration)
     /* check that next word is [num1][num2] and optional (num1, num2...) */
     char *temp;
     temp = duplicate_str(guide_declaration);
-    temp = strtok(temp, " ");
+    temp = strtok(temp, " \t");
 
     if (temp == NULL || strlen(temp) == 0)
     {

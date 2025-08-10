@@ -15,7 +15,7 @@ int handle_command_line_first_pass(symbol_item **symbol_table, char *line, int l
     char *command, *label, *label_name, *rest_of_line;
     int command_index;
 
-    label = strtok(duplicate_str(line), " ");
+    label = strtok(duplicate_str(line), " \t");
     if (is_label_declaration(label))
     {
         label_name = get_label_name(label);
@@ -23,7 +23,7 @@ int handle_command_line_first_pass(symbol_item **symbol_table, char *line, int l
         {
             return 0;
         }
-        command = strtok(NULL, " ");
+        command = strtok(NULL, " \t");
     }
     else
     {
@@ -204,10 +204,10 @@ int handle_command_line_second_pass(symbol_item **symbol_table, char *line, int 
     char *command, *label, *rest_of_line;
     int command_index;
 
-    label = strtok(duplicate_str(line), " ");
+    label = strtok(duplicate_str(line), " \t");
     if (is_label_declaration(label))
     {
-        command = strtok(NULL, " ");
+        command = strtok(NULL, " \t");
     }
     else
     {
@@ -270,6 +270,7 @@ int handle_no_op_line_second_pass(int line_number, char *str, int *IC)
     return 1;
 }
 
+/* similar to first pass */
 int handle_one_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     char *dst;
@@ -286,6 +287,7 @@ int handle_one_op_line_second_pass(symbol_item **symbol_table, int command_index
     return handle_op_line_second_pass(symbol_table, command_index, line_number, NULL, dst, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
 }
 
+/* similar to first pass */
 int handle_two_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
     char *src, *dst;
