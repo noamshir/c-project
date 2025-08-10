@@ -246,7 +246,7 @@ int handle_command_line_second_pass(symbol_item **symbol_table, char *line, int 
         break;
     case COMMAND_RTS:
     case COMMAND_STOP:
-        return handle_no_op_line_second_pass(symbol_table, command_index, line_number, rest_of_line, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+        return handle_no_op_line_second_pass(line_number, rest_of_line, IC);
         break;
     default:
         print_line_error(PROCESS_ERROR_INVALID_COMMAND, line_number);
@@ -254,7 +254,7 @@ int handle_command_line_second_pass(symbol_item **symbol_table, char *line, int 
     }
 }
 
-int handle_no_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
+int handle_no_op_line_second_pass(int line_number, char *str, int *IC)
 {
     /* ensure str is empty */
     if (!is_empty_line(str))
@@ -263,7 +263,11 @@ int handle_no_op_line_second_pass(symbol_item **symbol_table, int command_index,
         return 0;
     }
 
-    return handle_op_line_second_pass(symbol_table, command_index, line_number, NULL, NULL, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
+    /* we already encoded the command line, skip*/
+    (*IC)++;
+
+    /* nothing else to do here*/
+    return 1;
 }
 
 int handle_one_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
@@ -328,9 +332,11 @@ int handle_op_line_second_pass(symbol_item **symbol_table, int command_index, in
     /* we already encoded the command line, skip*/
     (*IC)++;
 
+    /* if both are registers we already encoded, skip*/
     if (src_type == ALLOCATION_REGISTER && dst_type == ALLOCATION_REGISTER)
     {
         (*IC)++;
+        /* nothing else to do here*/
         return 1;
     }
 

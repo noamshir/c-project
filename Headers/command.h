@@ -76,8 +76,9 @@ int handle_op_line_first_pass(int command_index, int line_number, char *src, cha
  */
 int encode_first_pass_operands(char *op, int type, int space, int line_number, int is_src, int *IC, unsigned int *array_of_commands);
 
+/* this fns are similar to the first pass fns. the main difference is that they get the extern params and that they only handle the mat and direct allocation */
 int handle_command_line_second_pass(symbol_item **symbol_table, char *line, int line_number, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
-int handle_no_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
+int handle_no_op_line_second_pass(int line_number, char *str, int *IC);
 int handle_one_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
 int handle_two_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *str, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
 int handle_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *src, char *dst, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count);
