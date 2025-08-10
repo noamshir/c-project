@@ -5,6 +5,7 @@
 #include "Headers/error.h"
 #include "Headers/string.h"
 #include "Headers/consts.h"
+#include "Headers/utils.h"
 
 symbol_item *create_symbol_item(char *name, char *type, int address, int is_entry)
 {

@@ -34,6 +34,7 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
     file = fopen(file_name, "r");
     if (file == NULL)
     {
+        free(file_name);
         print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return 0;
     }
@@ -98,6 +99,9 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
         if (((IC + DC) + MEMORY_START_ADDRESS) > MAX_MEMORY_SIZE)
         {
             /* exceeded max memory, should stop */
+            free_symbol_table(symbol_table);
+            free(file_name);
+            fclose(file);
             print_error(PROCESS_ERROR_MAX_MEMORY_SIZE_EXCEEDED);
             return 0;
         }
@@ -106,6 +110,8 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
     if (has_errors)
     {
         free_symbol_table(symbol_table);
+        free(file_name);
+        fclose(file);
         print_error(PROCESS_ERROR_FIRST_PASS_FAILED);
         return 0;
     }

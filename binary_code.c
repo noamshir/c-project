@@ -142,15 +142,16 @@ int set_first_pass_mat_allocation_binary_code(char *str, unsigned int *array_of_
 
     /* temp is now [reg1][reg2] (without the label) */
     /* set registers from mat encode */
-    valid = set_regs_from_mat_allocation(temp, reg1, reg2);
-    if (!valid)
+    valid = set_regs_from_mat_allocation_without_label(temp, reg1, reg2);
+    if (valid)
     {
-        return 0;
+        /* fill array of commands with the binary code for the regs */
+        array_of_commands[IC] = get_register_allocations_binary_code(reg1, reg2);
+        IC++;
     }
 
-    /* fill array of commands with the binary code for the regs */
-    array_of_commands[IC] = get_register_allocations_binary_code(reg1, reg2);
-    IC++;
+    free(reg1);
+    free(reg2);
 
-    return 1;
+    return valid;
 }

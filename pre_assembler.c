@@ -6,6 +6,7 @@
 #include "Headers/string.h"
 #include "Headers/error.h"
 #include "Headers/consts.h"
+#include "Headers/utils.h"
 
 int pre_assembler(char *file_name_without_postfix, mcro_item **mcro_table)
 {
