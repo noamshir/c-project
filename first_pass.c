@@ -119,13 +119,6 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
     ICF = IC;
     DCF = DC;
 
-    /*DEBUG*/
-    printf("data array after first pass (%d):\n", DC);
-    print_10bit_array(array_of_data, DC);
-
-    printf("commands array after first pass (%d):\n", IC);
-    print_10bit_array(array_of_commands, IC);
-
     update_data_symbol_items_address(&symbol_table, IC + MEMORY_START_ADDRESS);
 
     free(file_name);
@@ -140,17 +133,4 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
     free_symbol_table(symbol_table);
 
     return 1;
-}
-
-void print_10bit_array(unsigned int *arr, size_t size)
-{
-    size_t i, bit;
-    for (i = 0; i < size; i++)
-    {
-        for (bit = 9; bit < 10; bit--) /* loop from bit 9 down to bit 0 */
-        {
-            printf("%u", (arr[i] >> bit) & 1);
-        }
-        printf("\n");
-    }
 }

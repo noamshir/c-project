@@ -35,8 +35,6 @@ void convert_num_to_abcd_base(int num, char *output)
         output[i] = 'a' + digits[length - i - 1]; /* a asci value + the digit (0,1,2,3) */
     }
     output[length] = '\0';
-
-    printf("num: %d, base4 code: %s\n", num, output);
 }
 
 void convert_binary_code_to_abcd_base(unsigned int binary_code, char *output)

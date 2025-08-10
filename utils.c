@@ -200,10 +200,8 @@ int is_entry_guide(char *word)
 /* GUIDE DECLARATION */
 int is_data_guide_declaration(char *guide_declaration)
 {
-    char *num, *temp;
-
     /* check that guide_declaration is of type: "num1, num2, ...., numn" */
-    printf("checking data guide declaration: %s\n", guide_declaration);
+    char *num, *temp;
 
     temp = duplicate_str(guide_declaration);
     temp = delete_white_spaces_start_and_end(temp);
@@ -535,7 +533,6 @@ int set_regs_from_mat_allocation_without_label(char *mat_def, char *reg1, char *
         return 0;
     }
 
-    printf("reg1: %s, reg2: %s\n", reg1, reg2);
     return 1;
 }
 

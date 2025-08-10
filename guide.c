@@ -330,8 +330,6 @@ int handle_entry_guide(char *entry_label, int line_number, symbol_item **symbol_
     }
     else
     {
-        printf("Adding entry: %s\n", entry_label);
-
         /* add entry label and address*/
         sym = find_symbol_item_by_name(*symbol_table, entry_label);
         if (sym != NULL)

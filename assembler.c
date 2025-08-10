@@ -27,9 +27,11 @@ int main(int argc, char *argv[])
         /* first pass */
         if (!first_pass(file_name, &mcro_table))
         {
+            free_mcro_table(mcro_table);
             continue;
         }
 
+        free_mcro_table(mcro_table);
         printf("finished processing file: %s\n", file_name);
     }
 

@@ -39,7 +39,6 @@ int handle_command_line_first_pass(symbol_item **symbol_table, char *line, int l
     }
 
     rest_of_line = strtok(NULL, "\n");
-    printf("rest of line: %s\n", rest_of_line);
 
     switch (command_index)
     {
@@ -89,7 +88,6 @@ int handle_one_op_line_first_pass(int command_index, int line_number, char *str,
 
     dst = duplicate_str(str);
     dst = delete_white_spaces_start_and_end(dst);
-    printf("dst: %s\n", dst);
 
     if (dst == NULL)
     {
@@ -120,17 +118,15 @@ int handle_two_op_line_first_pass(int command_index, int line_number, char *str,
         return 0;
     }
 
-    printf("src: %s, dst: %s\n", src, dst);
     return handle_op_line_first_pass(command_index, line_number, src, dst, array_of_commands, IC);
 }
 
 int handle_op_line_first_pass(int command_index, int line_number, char *src, char *dst, unsigned int *array_of_commands, int *IC)
 {
     int line_binary_code;
-    int src_type, dst_type, src_space, dst_space, L = 0;
+    int src_type, dst_type, src_space, dst_space;
 
     src_type = get_allocation_type(src);
-    printf("src type: %d\n", src_type);
     if (src_type == ALLOCATION_INVALID)
     {
         print_line_error(PROCESS_ERROR_INVALID_SRC_ALLOCATION, line_number);
@@ -138,7 +134,6 @@ int handle_op_line_first_pass(int command_index, int line_number, char *src, cha
     }
 
     dst_type = get_allocation_type(dst);
-    printf("dst type: %d\n", dst_type);
     if (dst_type == ALLOCATION_INVALID)
     {
         print_line_error(PROCESS_ERROR_INVALID_DST_ALLOCATION, line_number);
@@ -150,15 +145,13 @@ int handle_op_line_first_pass(int command_index, int line_number, char *src, cha
         return 0;
     }
 
-    L = calculate_space(src_type, dst_type, &src_space, &dst_space);
-    printf("Space size for line: %d\n", L);
+    calculate_space(src_type, dst_type, &src_space, &dst_space);
 
     line_binary_code = build_command_line_binary_code(command_index, src_type, dst_type);
 
     array_of_commands[*IC] = line_binary_code;
     (*IC)++;
 
-    printf("handling: operands src: %s, dst: %s\n", src, dst);
     if (src_type == ALLOCATION_REGISTER && dst_type == ALLOCATION_REGISTER)
     {
         array_of_commands[*IC] = get_register_allocations_binary_code(src, dst);
@@ -279,7 +272,6 @@ int handle_one_op_line_second_pass(symbol_item **symbol_table, int command_index
 
     dst = duplicate_str(str);
     dst = delete_white_spaces_start_and_end(dst);
-    printf("dst: %s\n", dst);
 
     if (dst == NULL)
     {
@@ -310,16 +302,14 @@ int handle_two_op_line_second_pass(symbol_item **symbol_table, int command_index
         return 0;
     }
 
-    printf("src: %s, dst: %s\n", src, dst);
     return handle_op_line_second_pass(symbol_table, command_index, line_number, src, dst, array_of_commands, IC, extern_labels, extern_addresses, extern_count);
 }
 
 int handle_op_line_second_pass(symbol_item **symbol_table, int command_index, int line_number, char *src, char *dst, unsigned int *array_of_commands, int *IC, char ***extern_labels, int **extern_addresses, int *extern_count)
 {
-    int src_type, dst_type, src_space, dst_space, L = 0;
+    int src_type, dst_type, src_space, dst_space;
 
     src_type = get_allocation_type(src);
-    printf("src type: %d\n", src_type);
     if (src_type == ALLOCATION_INVALID)
     {
         print_line_error(PROCESS_ERROR_INVALID_SRC_ALLOCATION, line_number);
@@ -327,33 +317,28 @@ int handle_op_line_second_pass(symbol_item **symbol_table, int command_index, in
     }
 
     dst_type = get_allocation_type(dst);
-    printf("dst type: %d\n", dst_type);
     if (dst_type == ALLOCATION_INVALID)
     {
         print_line_error(PROCESS_ERROR_INVALID_DST_ALLOCATION, line_number);
         return 0;
     }
 
-    L = calculate_space(src_type, dst_type, &src_space, &dst_space);
-    printf("Space size for line: %d\n", L);
+    calculate_space(src_type, dst_type, &src_space, &dst_space);
 
     /* we already encoded the command line, skip*/
     (*IC)++;
 
-    printf("handling: operands src: %s, dst: %s\n", src, dst);
     if (src_type == ALLOCATION_REGISTER && dst_type == ALLOCATION_REGISTER)
     {
         (*IC)++;
         return 1;
     }
 
-    printf("encoding src: %s\n", src);
     if (!encode_second_pass_operands(src, src_type, src_space, line_number, IC, array_of_commands, symbol_table, extern_labels, extern_addresses, extern_count))
     {
         return 0;
     }
 
-    printf("encoding dst: %s\n", dst);
     return encode_second_pass_operands(dst, dst_type, dst_space, line_number, IC, array_of_commands, symbol_table, extern_labels, extern_addresses, extern_count);
 }
 
@@ -458,7 +443,6 @@ int calculate_space(int src_type, int dst_type, int *src_space, int *dst_space)
 int is_command_src_dst_valid(int command_index, int line_number, int src_type, int dst_type)
 {
     int invalid = 0;
-    printf("command index: %d, src type: %d, dst type: %d\n", command_index, src_type, dst_type);
 
     /* check src */
     switch (command_index)

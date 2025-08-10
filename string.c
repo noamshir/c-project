@@ -112,18 +112,6 @@ int is_line_too_long(char *line)
     return line_length > 0 && line_length >= LINE_SIZE && line[line_length - 1] != '\n';
 }
 
-char *get_file_name_without_extension(char *file_name)
-{
-    char *temp = duplicate_str(file_name);
-    char *dot_pt = strchr(temp, '.');
-    if (dot_pt != NULL)
-    {
-        /* ends string at dot */
-        *dot_pt = '\0';
-    }
-    return temp;
-}
-
 int is_empty_line(char *line)
 {
     if (line == NULL)

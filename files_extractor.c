@@ -4,6 +4,7 @@
 #include "Headers/files_extractor.h"
 #include "Headers/consts.h"
 #include "Headers/abcd_code.h"
+#include "Headers/error.h"
 
 void generate_ob_file(char *name, unsigned int *commands, int command_length, unsigned int *data, int data_length)
 {
@@ -14,8 +15,6 @@ void generate_ob_file(char *name, unsigned int *commands, int command_length, un
     char abcd_binary_code[6], abcd_address_code[6], abcd_code_length_code[6], abcd_data_length_code[6];
 
     printf("generating ob file\n");
-    printf("code length: %d, data length: %d\n", command_length, data_length);
-    printf("address %d \n", address_counter);
     /*create object file and open it for writing*/
     strcpy(file_name, name);
     strcat(file_name, ".ob");
@@ -23,7 +22,7 @@ void generate_ob_file(char *name, unsigned int *commands, int command_length, un
     ob_file = fopen(file_name, "w");
     if (ob_file == NULL)
     {
-        printf("Error: Cannot create file %s\n", file_name);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return;
     }
     convert_num_to_abcd_base(command_length, abcd_code_length_code);
@@ -77,7 +76,7 @@ void generate_entry_file(char *name, char **entry_labels, int *addresses, int en
     fp = fopen(file_name, "w");
     if (!fp)
     {
-        printf("Error: Can't create file %s\n", file_name);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return;
     }
 
@@ -111,7 +110,7 @@ void generate_extern_file(char *name, char **extern_labels, int *addresses, int 
     fp = fopen(file_name, "w");
     if (!fp)
     {
-        printf("Error: Cannot create file %s\n", file_name);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return;
     }
 

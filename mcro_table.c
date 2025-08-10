@@ -84,7 +84,6 @@ mcro_item *find_mcro_item_by_name(mcro_item *head, char *name)
 
     if (strcmp(name, head->name) == 0)
     {
-        printf("found %s\n", name);
         return head;
     }
 

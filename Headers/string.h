@@ -44,12 +44,6 @@ int is_char_digit(char c);
  */
 int is_line_too_long(char *line);
 /**
- * return a file name without the extension (.something).
- * @param file_name - the string we want to remove its extension.
- * @return a string which represents the file name (without extension if existed).
- */
-char *get_file_name_without_extension(char *file_name);
-/**
  * checks if a line is empty.
  * @param line - the line we want to check.
  * @return 1 if line is empty, 0 otherwise.

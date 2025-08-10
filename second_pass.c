@@ -44,7 +44,7 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, un
     file = fopen(file_name, "r");
     if (file == NULL)
     {
-        printf("error code is %d\n", PROCESS_ERROR_FAILED_TO_OPEN_FILE);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         free(file_name);
         return;
     }

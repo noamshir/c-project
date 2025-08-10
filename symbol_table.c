@@ -103,7 +103,6 @@ void update_data_symbol_items_address(symbol_item **head, int ICF)
 
     if (strcmp(DATA_SYMBOL, (*head)->type) == 0)
     {
-        printf("changing label %s address to %d\n", (*head)->name, (*head)->address + ICF);
         (*head)->address = (*head)->address + ICF;
     }
 
