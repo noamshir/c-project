@@ -118,7 +118,7 @@ int is_label_declaration(char *word)
     {
         return 0;
     }
-    if (strlen(word) == 0 || strlen(word) == 1 || strlen(word) > LABEL_SIZE)
+    if (strlen(word) == 0 || strlen(word) == 1)
     {
         return 0;
     }

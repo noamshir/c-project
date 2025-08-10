@@ -16,7 +16,7 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
 {
     int IC = 0, DC = 0, ICF, DCF, line_num = 0, is_line_valid = 0, has_errors = 0;
     unsigned int array_of_commands[156], array_of_data[156];
-    char *file_name, line[LINE_SIZE], *first_word_in_line, *main_op;
+    char *file_name, line[LINE_SIZE], *first_word_in_line, *main_op, *label;
     FILE *file;
     symbol_item *symbol_table = NULL;
 
@@ -58,8 +58,17 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
         first_word_in_line = strtok(duplicate_str(line), " ");
         if (is_label_declaration(first_word_in_line))
         {
-            if (find_mcro_item_by_name(*mcro_table, first_word_in_line) != NULL)
+            label = get_label_name(first_word_in_line);
+            if (!is_valid_label_name(label))
             {
+                has_errors = 1;
+                print_line_error(PROCESS_ERROR_INVALID_LABEL, line_num);
+                continue;
+            }
+
+            if (find_mcro_item_by_name(*mcro_table, label) != NULL)
+            {
+                has_errors = 1;
                 print_line_error(PROCESS_ERROR_LABEL_AS_MACRO, line_num);
                 continue;
             }

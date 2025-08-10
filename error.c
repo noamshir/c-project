@@ -31,6 +31,9 @@ void print_error(int error_code)
     case PROCESS_ERROR_FIRST_PASS_FAILED:
         printf("first pass failed\n");
         break;
+    case PROCESS_ERROR_INVALID_LABEL:
+        printf("invalid label\n");
+        break;
     case PROCESS_ERROR_COMMAND_AS_LABEL:
         printf("command as label\n");
         break;
