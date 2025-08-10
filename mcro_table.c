@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Headers/table.h"
+#include "Headers/mcro_table.h"
 #include "Headers/error.h"
+#include "Headers/string.h"
 
-mcro_item *create_item(char *name, char *value)
+mcro_item *create_mcro_item(char *name, char *value)
 {
     mcro_item *item = malloc(sizeof(mcro_item));
     if (item == NULL)
@@ -17,10 +18,10 @@ mcro_item *create_item(char *name, char *value)
     return item;
 }
 
-mcro_item *add_item(mcro_item **head, char *name, char *value)
+mcro_item *add_mcro_item(mcro_item **head, char *name, char *value)
 {
     mcro_item *item, *temp;
-    item = create_item(name, value);
+    item = create_mcro_item(name, value);
     if (*head == NULL)
     {
         *head = item;
@@ -48,7 +49,7 @@ mcro_item *add_item(mcro_item **head, char *name, char *value)
     return item;
 }
 
-void append_item_value(mcro_item *item, char *value)
+void append_string_to_mcro_item_value(mcro_item *item, char *value)
 {
     if (item->value == NULL)
     {
@@ -56,10 +57,9 @@ void append_item_value(mcro_item *item, char *value)
         item->value = malloc(strlen(value) + 1);
         if (item->value == NULL)
         {
-            printf("malloc failed");
-            exit(1);
+            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
-        strcpy(item->value, value);
+        strcpy(item->value, duplicate_str(value));
     }
     else
     {
@@ -68,16 +68,14 @@ void append_item_value(mcro_item *item, char *value)
         char *temp = realloc(item->value, new_len);
         if (temp == NULL)
         {
-            printf("realloc failed");
-            free(item->value);
-            exit(1);
+            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
         item->value = temp;
-        strcat(item->value, value);
+        strcat(item->value, duplicate_str(value));
     }
 }
 
-mcro_item *find_by_name(mcro_item *head, char *name)
+mcro_item *find_mcro_item_by_name(mcro_item *head, char *name)
 {
     if (head == NULL)
     {
@@ -86,9 +84,23 @@ mcro_item *find_by_name(mcro_item *head, char *name)
 
     if (strcmp(name, head->name) == 0)
     {
-
         return head;
     }
 
-    return find_by_name(head->next, name);
+    return find_mcro_item_by_name(head->next, name);
+}
+
+void free_mcro_table(mcro_item *head)
+{
+    if (head == NULL)
+    {
+        return;
+    }
+
+    if (head->next != NULL)
+        free_mcro_table(head->next);
+
+    free(head->name);
+    free(head->value);
+    free(head);
 }

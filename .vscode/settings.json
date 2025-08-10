@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "files_extractor.h": "c",
+        "second_pass.h": "c"
+    }
+}

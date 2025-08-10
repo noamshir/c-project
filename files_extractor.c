@@ -2,146 +2,125 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Headers/files_extractor.h"
+#include "Headers/consts.h"
+#include "Headers/abcd_code.h"
+#include "Headers/error.h"
 
-/*this function recieves .as file after macros expand and creates .am file*/
-void generateAmFile(char *name, char **expandedLines, int lineCount)
+void generate_ob_file(char *name, unsigned int *commands, int command_length, unsigned int *data, int data_length)
 {
+    FILE *ob_file;
+    char file_name[256];
     int i; /*parameter for loops*/
-    FILE *amFile;
-    char fileName[300];
+    int address_counter = MEMORY_START_ADDRESS;
+    char abcd_binary_code[6], abcd_address_code[6], abcd_code_length_code[6], abcd_data_length_code[6];
 
-    strcpy(fileName, name);  /*creating am file*/
-    strcat(fileName, ".am"); /*adding the .am in the end of the name*/
-
-    amFile = fopen(fileName, "w"); /*open the am file that created to writing*/
-    if (amFile == NULL)            /* checks for error while the opening*/
-    {
-        printf("Error: Can't create file %s\n", fileName);
-        return;
-    }
-
-    for (i = 0; i < lineCount; i++)
-    {
-        fprintf(amFile, "%s\n", expandedLines[i]); /*adding the expanded line*/
-    }
-
-    fclose(amFile);
-    printf("Generated file: %s\n", fileName); /*print a message that .am file has been created*/
-}
-
-void convertToSpecialBase4(int value, char *output) /*converting the input to a dedicate base 4 code for the object file*/
-{
-    int i;
-    char base4Chars[] = {'a', 'b', 'c', 'd'};
-
-    for (i = 4; i >= 0; i--)
-    {
-        output[4 - i] = base4Chars[(value >> (i * 2)) & 0x3];
-    }
-
-    output[5] = '\0';
-}
-
-void generateObFile(char *name, int *code, int codeLength, int *data, int dataLength)
-{
-    FILE *obFile;
-    char fileName[300];
-    int i; /*parameter for loops*/
-    char encoded[6];
-
+    printf("generating ob file\n");
     /*create object file and open it for writing*/
-    strcpy(fileName, name);
-    strcat(fileName, ".ob");
+    strcpy(file_name, name);
+    strcat(file_name, ".ob");
 
-    obFile = fopen(fileName, "w");
-    if (obFile == NULL)
+    ob_file = fopen(file_name, "w");
+    if (ob_file == NULL)
     {
-        printf("Error: Cannot create file %s\n", fileName);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return;
     }
+    convert_num_to_abcd_base(command_length, abcd_code_length_code);
+    convert_num_to_abcd_base(data_length, abcd_data_length_code);
 
     /* the first line in the file, presents the length of the data and the code*/
-    fprintf(obFile, "%d %d\n", codeLength, dataLength);
+    fprintf(ob_file, "%s %s\n", abcd_code_length_code, abcd_data_length_code);
 
-    for (i = 0; i < codeLength; i++)
+    printf("inserting encoded commands \n");
+    for (i = 0; i < command_length; i++)
     {
-        convertToSpecialBase4(code[i], encoded);
-        fprintf(obFile, "%04d %s\n", 100 + i, encoded);
+        convert_num_to_abcd_base(MEMORY_START_ADDRESS + i, abcd_address_code);
+        convert_binary_code_to_abcd_base(commands[i], abcd_binary_code);
+        fprintf(ob_file, "%s %s\n", abcd_address_code, abcd_binary_code);
+
+        address_counter++;
     }
 
-    for (i = 0; i < dataLength; i++)
+    printf("inserting encoded data \n");
+    for (i = 0; i < data_length; i++)
     {
-        convertToSpecialBase4(data[i], encoded);
-        fprintf(obFile, "%04d %s\n", 100 + codeLength + i, encoded);
+        convert_num_to_abcd_base(MEMORY_START_ADDRESS + command_length + i, abcd_address_code);
+        convert_binary_code_to_abcd_base(data[i], abcd_binary_code);
+        fprintf(ob_file, "%s %s\n", abcd_address_code, abcd_binary_code);
+        address_counter++;
     }
 
-    fclose(obFile);
-    printf("Generated file: %s\n", fileName);
+    fclose(ob_file);
+    printf("Generated ob file: %s\n", file_name);
 }
 
-void generateEntryFile(char *name, char **entryLabels, int *addresses, int entryCount)
+void generate_entry_file(char *name, char **entry_labels, int *addresses, int entry_count)
 {
-    FILE *entFile;
-    char fileName[300];
+    FILE *fp;
+    char file_name[256], encoded[5];
     int i;
 
-    /* to not create file if there is not lable*/
-    if (entryCount == 0)
+    printf("generating entry file\n");
+
+    /* to not create file if there is not lable */
+    if (entry_count == 0)
     {
         return;
     }
 
     /* create entry file */
-    strcpy(fileName, name);
-    strcat(fileName, ".ent");
+    strcpy(file_name, name);
+    strcat(file_name, ".ent");
 
     /* open the file for writing */
-    entFile = fopen(fileName, "w");
-    if (!entFile)
+    fp = fopen(file_name, "w");
+    if (!fp)
     {
-        printf("Error: Can't create file %s\n", fileName);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return;
     }
 
-    /*writing lables*/
-    for (i = 0; i < entryCount; i++)
+    /*writing labels*/
+    for (i = 0; i < entry_count; i++)
     {
-        fprintf(entFile, "%s %04d\n", entryLabels[i], addresses[i]);
+        convert_num_to_abcd_base(addresses[i], encoded);
+        fprintf(fp, "%s %s\n", entry_labels[i], encoded);
     }
 
-    fclose(entFile);
-    printf("Generated file: %s\n", fileName);
+    fclose(fp);
+    printf("Generated entry file: %s\n", file_name);
 }
 
 /* creates extern file */
-void generateExternFile(char *name, char **externLabels, int *addresses, int externCount)
+void generate_extern_file(char *name, char **extern_labels, int *addresses, int extern_count)
 {
-    FILE *extFile;
-    char fileName[300];
+    FILE *fp;
+    char file_name[256], encoded[5];
     int i;
 
     /* to not create file if there is not lable*/
-    if (externCount == 0)
+    if (extern_count == 0)
     {
         return;
     }
 
-    strcpy(fileName, name);
-    strcat(fileName, ".ext");
+    strcpy(file_name, name);
+    strcat(file_name, ".ext");
 
-    extFile = fopen(fileName, "w");
-    if (!extFile)
+    fp = fopen(file_name, "w");
+    if (!fp)
     {
-        printf("Error: Cannot create file %s\n", fileName);
+        print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
         return;
     }
 
     /*writing lables*/
-    for (i = 0; i < externCount; i++)
+    for (i = 0; i < extern_count; i++)
     {
-        fprintf(extFile, "%s %04d\n", externLabels[i], addresses[i]);
+        convert_num_to_abcd_base(addresses[i], encoded);
+        fprintf(fp, "%s %s\n", extern_labels[i], encoded);
     }
 
-    fclose(extFile);
-    printf("Generated file: %s\n", fileName);
+    fclose(fp);
+    printf("Generated extern file: %s\n", file_name);
 }
