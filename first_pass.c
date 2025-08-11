@@ -21,15 +21,7 @@ int first_pass(char *file_name_without_postfix, mcro_item **mcro_table)
     symbol_item *symbol_table = NULL;
 
     printf("first pass started\n");
-
-    file_name = malloc(strlen(file_name_without_postfix) + 4);
-    if (file_name == NULL)
-    {
-        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    strcpy(file_name, file_name_without_postfix);
-    strcat(file_name, ".am");
+    file_name = build_file_name_with_postfix(file_name_without_postfix, ".am");
 
     file = fopen(file_name, "r");
     if (file == NULL)

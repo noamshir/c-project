@@ -7,6 +7,13 @@
  */
 void free_array_of_strings(char **array, int length);
 /**
+ * @brief build file name with postfix.
+ * @param name the base file name.
+ * @param postfix the file postfix.
+ * @return file name with the postfix.
+ */
+char *build_file_name_with_postfix(char *name, char *postfix);
+/**
  * check if a string is a valid mcro name
  * @param name - the string to check
  * @return  1 if string is a valid mcro name, 0 otherwise.

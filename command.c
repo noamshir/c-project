@@ -102,6 +102,12 @@ int handle_two_op_line_first_pass(int command_index, int line_number, char *str,
 {
     char *src, *dst;
 
+    if (!is_two_operands_declaration_valid(str))
+    {
+        print_line_error(PROCESS_ERROR_INVALID_COMMAND_WITH_TWO_OPERANDS_DECLARATION, line_number);
+        return 0;
+    }
+
     src = strtok(duplicate_str(str), ",");
     src = delete_white_spaces_start_and_end(src);
     if (src == NULL)
@@ -533,6 +539,30 @@ int is_command_src_dst_valid(int command_index, int line_number, int src_type, i
     if (invalid)
     {
         print_line_error(PROCESS_ERROR_INVALID_DST_ALLOCATION, line_number);
+        return 0;
+    }
+
+    return 1;
+}
+
+int is_two_operands_declaration_valid(char *command_declaration)
+{
+    /* ensure str is of type str1,str2*/
+    char *temp;
+    temp = duplicate_str(command_declaration);
+    temp = delete_white_spaces_start_and_end(temp);
+
+    /* ensure at least on comma separator*/
+    temp = strchr(temp, ',');
+    if (temp == NULL)
+    {
+        return 0;
+    }
+
+    /* ensure only one comma separator */
+    temp = strchr(temp + 1, ',');
+    if (temp != NULL)
+    {
         return 0;
     }
 

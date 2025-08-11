@@ -30,15 +30,7 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, un
 
     printf("second pass started\n");
 
-    file_name = malloc(strlen(file_name_without_postfix) + 4);
-    if (file_name == NULL)
-    {
-        exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    /*adding ".am" at the end of the file name*/
-    strcpy(file_name, file_name_without_postfix);
-    strcat(file_name, ".am");
+    file_name = build_file_name_with_postfix(file_name_without_postfix, ".am");
 
     /*open the file for reading and check for error*/
     file = fopen(file_name, "r");

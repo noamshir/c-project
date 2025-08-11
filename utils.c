@@ -52,6 +52,22 @@ void free_array_of_strings(char **array, int length)
     free(array);
 }
 
+/* FILES */
+char *build_file_name_with_postfix(char *name, char *postfix)
+{
+    char *file_name;
+    file_name = malloc(strlen(name) + strlen(postfix) + 1);
+    if (file_name == NULL)
+    {
+        safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+    }
+
+    strcpy(file_name, name);
+    strcat(file_name, postfix);
+
+    return file_name;
+}
+
 /* MCRO */
 int is_mcro_name_valid(char *name)
 {
@@ -200,48 +216,67 @@ int is_entry_guide(char *word)
 /* GUIDE DECLARATION */
 int is_data_guide_declaration(char *guide_declaration)
 {
-    /* check that guide_declaration is of type: "num1, num2, ...., numn" */
-    char *num, *temp;
+    int i;
+    char *temp, *num;
+
+    if (guide_declaration == NULL)
+    {
+        return 0;
+    }
 
     temp = duplicate_str(guide_declaration);
-    temp = delete_white_spaces_start_and_end(temp);
-    if (temp == NULL)
-    {
-        return 0;
-    }
-
-    if (strlen(temp) == 0)
-    {
-        return 0;
-    }
-
-    if (temp[0] == ',' || temp[strlen(temp) - 1] == ',')
-    {
-        return 0;
-    }
-
-    num = strtok(duplicate_str(temp), ",");
-    num = delete_white_spaces_start_and_end(num);
-    if (num == NULL || !is_integer(num))
-    {
-        return 0;
-    }
-
     while (1)
     {
-        num = strtok(NULL, ",");
-        num = delete_white_spaces_start_and_end(num);
+        i = 0;
+        num = NULL;
+        temp = delete_white_spaces_start_and_end(temp);
+
+        while (temp != NULL && *temp != ',' && *temp != '\0')
+        {
+            i++;
+            if (i == 1)
+            {
+                num = malloc(i);
+            }
+            else
+            {
+                num = realloc(num, i);
+            }
+
+            if (num == NULL)
+            {
+                safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
+            }
+
+            num[i - 1] = *temp;
+            temp++;
+        }
+
+        num = realloc(num, i + 1);
         if (num == NULL)
         {
-            return 1;
+            safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
+        num[i] = '\0';
+        printf("num: %s\n", num);
+        printf("temp: %s\n", temp);
 
         if (!is_integer(num))
         {
-            print_error(PROCESS_ERROR_DATA_GUIDE_INVALID_PARAM);
+            free(num);
             return 0;
         }
+
+        if (is_empty_line(temp))
+        {
+            free(num);
+            return 1;
+        }
+
+        temp++;
     }
+
+    return 1;
 }
 
 int is_mat_declaration(char *guide_declaration)

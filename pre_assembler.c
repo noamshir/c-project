@@ -16,16 +16,7 @@ int pre_assembler(char *file_name_without_postfix, mcro_item **mcro_table)
     printf("pre assembler started\n");
 
     /* allocates memory to the file name (with .as postfix )*/
-    as_file_name = malloc(strlen(file_name_without_postfix) + 4);
-    if (as_file_name == NULL)
-    {
-        exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    /* add the .as postfix to the file name */
-    strcpy(as_file_name, file_name_without_postfix);
-    strcat(as_file_name, ".as");
-
+    as_file_name = build_file_name_with_postfix(file_name_without_postfix, ".as");
     as_fp = fopen(as_file_name, "r");
     if (as_fp == NULL)
     {
@@ -41,15 +32,8 @@ int pre_assembler(char *file_name_without_postfix, mcro_item **mcro_table)
         return 0;
     }
 
-    am_file_name = malloc(strlen(file_name_without_postfix) + 4);
-    if (am_file_name == NULL)
-    {
-        exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
-    }
-
-    strcpy(am_file_name, file_name_without_postfix);
-    strcat(am_file_name, ".am");
-
+    /* allocates memory to the file name (with .am postfix )*/
+    am_file_name = build_file_name_with_postfix(file_name_without_postfix, ".am");
     am_fp = fopen(am_file_name, "w+");
     if (am_fp == NULL)
     {
@@ -227,7 +211,7 @@ int replace_mcro_defines(mcro_item **mcro_table, char *file_name)
     }
 
     /* create temp file */
-    temp_file_pointer = fopen("temp2.as", "w");
+    temp_file_pointer = fopen(TEMP_FILE_NAME, "w");
     if (temp_file_pointer == NULL)
     {
         print_error(PROCESS_ERROR_FAILED_TO_OPEN_FILE);
@@ -260,11 +244,13 @@ int replace_mcro_defines(mcro_item **mcro_table, char *file_name)
         fprintf(temp_file_pointer, "%s", content);
     }
 
+    /* close files */
     fclose(original_file_pointer);
     fclose(temp_file_pointer);
 
+    /* replace temp file */
     remove(file_name);
-    rename("temp2.as", file_name);
+    rename(TEMP_FILE_NAME, file_name);
 
     printf("finished replacing mcro defines\n");
     return 1;

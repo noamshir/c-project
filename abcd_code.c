@@ -10,7 +10,7 @@ void convert_num_to_abcd_base(int num, char *output)
     int i, temp, digits[6];
     int length = 0;
 
-    if (num < 0 || num > 256)
+    if (num < 0 || num > MAX_MEMORY_SIZE)
         return;
 
     /* special case for 0 */

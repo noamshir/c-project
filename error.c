@@ -61,6 +61,9 @@ void print_error(int error_code)
     case PROCESS_ERROR_INVALID_NO_OP_LINE:
         printf("invalid no op line\n");
         break;
+    case PROCESS_ERROR_INVALID_COMMAND_WITH_TWO_OPERANDS_DECLARATION:
+        printf("invalid command with two operands declaration\n");
+        break;
     case PROCESS_ERROR_INVALID_SRC_ALLOCATION:
         printf("invalid src allocation\n");
         break;

@@ -104,4 +104,10 @@ int calculate_space(int src_type, int dst_type, int *src_space, int *dst_space);
  * @return 1 if the types are valid, 0 otherwise.
  */
 int is_command_src_dst_valid(int command_index, int line_number, int src_type, int dst_type);
+/**
+ * @brief checks if a command declaration string is of type "str1,str2".
+ * @param command_declaration the string to ensure is valid.
+ * @return 1 if the string received as param is of type "str1,str2", 0 otherwise.
+ */
+int is_two_operands_declaration_valid(char *command_declaration);
 #endif

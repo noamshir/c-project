@@ -75,6 +75,7 @@ typedef enum ARE_TYPES
 /* MACRO */
 #define MCRO_START "mcro"
 #define MCRO_END "mcroend"
+#define TEMP_FILE_NAME "assembler_temp.am"
 
 /* SYMBOLS */
 #define DATA_SYMBOL "data"
