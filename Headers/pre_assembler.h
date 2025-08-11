@@ -1,5 +1,6 @@
 #include "./mcro_table.h"
-
+#ifndef PRE_ASSEMBLER_H
+#define PRE_ASSEMBLER_H
 /**
  * @brief Pre assembler phase.
  * process the file (which name is received as param) line by line and replace mcro defines.
@@ -31,3 +32,4 @@ void remove_mcro_defines(FILE *as_fp, FILE *am_fp);
  * @return 1 if successfully replaced the mcro definitions in the .am file, 0 otherwise.
  */
 int replace_mcro_defines(mcro_item **mcro_table, char *file_name);
+#endif

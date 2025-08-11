@@ -64,6 +64,7 @@ char *build_file_name_with_postfix(char *name, char *postfix)
 
     strcpy(file_name, name);
     strcat(file_name, postfix);
+    strcat(file_name, "\0");
 
     return file_name;
 }
@@ -258,8 +259,6 @@ int is_data_guide_declaration(char *guide_declaration)
             safe_exit(PROCESS_ERROR_MEMORY_ALLOCATION_FAILED);
         }
         num[i] = '\0';
-        printf("num: %s\n", num);
-        printf("temp: %s\n", temp);
 
         if (!is_integer(num))
         {

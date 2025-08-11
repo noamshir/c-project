@@ -69,7 +69,7 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, un
     while (fgets(line, sizeof(line), file) != NULL)
     {
         line_num++;
-        printf("line %d: %s\n", line_num, line);
+        printf("line %d: %s", line_num, line);
 
         if (is_empty_line(line) || is_comment_line(line))
         {

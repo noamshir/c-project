@@ -1,3 +1,5 @@
+#ifndef ERROR_H
+#define ERROR_H
 typedef enum PROCESS_ERROR_CODES
 {
     /* internal */
@@ -60,3 +62,4 @@ void safe_exit(int error_code);
  * @param error_code an integer representing the error code
  */
 void print_line_error(int line_num, int error_code);
+#endif

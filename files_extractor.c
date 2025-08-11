@@ -52,9 +52,10 @@ void generate_ob_file(char *name, unsigned int *commands, int command_length, un
         address_counter++;
     }
 
+    printf("Generated ob file: %s\n", file_name);
+
     fclose(ob_file);
     free(file_name);
-    printf("Generated ob file: %s\n", file_name);
 }
 
 void generate_entry_file(char *name, char **entry_labels, int *addresses, int entry_count)
@@ -88,9 +89,10 @@ void generate_entry_file(char *name, char **entry_labels, int *addresses, int en
         fprintf(fp, "%s %s\n", entry_labels[i], encoded);
     }
 
+    printf("Generated entry file: %s\n", file_name);
+
     fclose(fp);
     free(file_name);
-    printf("Generated entry file: %s\n", file_name);
 }
 
 /* creates extern file */
@@ -124,7 +126,8 @@ void generate_extern_file(char *name, char **extern_labels, int *addresses, int 
         fprintf(fp, "%s %s\n", extern_labels[i], encoded);
     }
 
+    printf("Generated extern file: %s\n", file_name);
+
     fclose(fp);
     free(file_name);
-    printf("Generated extern file: %s\n", file_name);
 }

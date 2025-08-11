@@ -4,6 +4,10 @@
 #include "Headers/pre_assembler.h"
 #include "Headers/first_pass.h"
 
+/**
+ * @authors Noam Shir Melzer and Eliran Bechor.
+ * @brief Maman 14 - Assembler Project (2025 b).
+ */
 int main(int argc, char *argv[])
 {
     char *file_name;

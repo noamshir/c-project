@@ -1,16 +1,16 @@
 .entry LOOP
 .entry LENGTH
-.extern EE
+.extern L3
 .extern W
 MAIN: mov M1[r2][r7],W
-NEW: mov M1[r1][r7],W
+ add r2,STR
+LOOP: jmp W
  prn #-5
  sub r1, r4
  inc K
- add r2,STR
-LOOP: jmp W
+
  mov M1[r3][r3],r3
- bne EE
+ bne L3
 END: stop
 STR: .string "abcdef"
 LENGTH: .data 6,-9,15

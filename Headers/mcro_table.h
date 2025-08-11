@@ -1,5 +1,5 @@
-#ifndef TABLE_H
-#define TABLE_H
+#ifndef MCRO_TABLE_H
+#define MCRO_TABLE_H
 typedef struct mcro_item
 {
     char *name;
