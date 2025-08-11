@@ -96,7 +96,7 @@ symbol_item *find_symbol_item_by_name(symbol_item *head, char *name)
 
 void update_data_symbol_items_address(symbol_item **head, int ICF)
 {
-    if (head == NULL)
+    if (*head == NULL)
     {
         return;
     }

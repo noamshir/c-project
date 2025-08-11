@@ -119,7 +119,7 @@ void second_pass(char *file_name_without_postfix, symbol_item **symbol_table, un
     }
 
     /* creation of final files (.ob, .entry, .extrn)*/
-    if (!error_flag)
+    if (!error_flag && (ICF > 0 || DCF > 0))
     {
         generate_ob_file(file_name_without_postfix, array_of_commands, ICF, array_of_data, DCF);
     }
