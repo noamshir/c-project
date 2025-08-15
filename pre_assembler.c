@@ -251,6 +251,8 @@ int replace_mcro_defines(mcro_item **mcro_table, char *file_name)
     /* replace temp file */
     remove(file_name);
     rename(TEMP_FILE_NAME, file_name);
+    /* ensure remove of temp file */
+    remove(TEMP_FILE_NAME);
 
     printf("finished replacing mcro defines\n");
     return 1;
