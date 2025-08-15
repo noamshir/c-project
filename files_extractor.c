@@ -36,7 +36,7 @@ void generate_ob_file(char *name, unsigned int *commands, int command_length, un
     /* add command binary codes and their addresses to the ob file */
     for (i = 0; i < command_length; i++)
     {
-        convert_num_to_abcd_base(MEMORY_START_ADDRESS + i, abcd_address_code);
+        convert_num_to_abcd_base(address_counter, abcd_address_code);
         convert_binary_code_to_abcd_base(commands[i], abcd_binary_code);
         fprintf(ob_file, "%s\t%s\n", abcd_address_code, abcd_binary_code);
 
@@ -46,7 +46,7 @@ void generate_ob_file(char *name, unsigned int *commands, int command_length, un
     /* add data binary codes and their addresses to the ob file */
     for (i = 0; i < data_length; i++)
     {
-        convert_num_to_abcd_base(MEMORY_START_ADDRESS + command_length + i, abcd_address_code);
+        convert_num_to_abcd_base(address_counter, abcd_address_code);
         convert_binary_code_to_abcd_base(data[i], abcd_binary_code);
         fprintf(ob_file, "%s\t%s\n", abcd_address_code, abcd_binary_code);
         address_counter++;
